@@ -7,4 +7,5 @@ package net.notalkingonlyquiet.bot.config;
  */
 public class Config {
     public LoginConfig login;
+    public PerformanceConfig performance;
 }

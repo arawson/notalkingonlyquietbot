@@ -1,5 +1,5 @@
 
-package net.notalkingonlyquiet.bot;
+package net.notalkingonlyquiet.bot.audio;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.track.playback.AudioFrame;
