@@ -2,3 +2,7 @@
 client_id = ""
 token = ""
 playing = "with fire."
+
+[performance]
+servers = 1
+threads = 2
