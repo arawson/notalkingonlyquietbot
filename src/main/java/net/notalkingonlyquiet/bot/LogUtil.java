@@ -6,36 +6,61 @@ import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
+import org.slf4j.impl.StaticLoggerBinder;
 
 /**
  * NO MORE COMPLICATED LOGGING
  * @author arawson
  */
 public class LogUtil {
-    private static final String LOGGER_NAME = "SPACE_MAZE";
-    private static Logger logger;
-    private static FileHandler handler;
-    private static SimpleFormatter formatter;
+    private static final String LOGGER_NAME = "NOTALKINGONLYQUIET";
+    private static final Logger LOGGER;
     
-    static void initLogging() throws IOException {
-        logger = Logger.getLogger(LOGGER_NAME);
-        handler = new FileHandler("./log");
-        formatter = new SimpleFormatter();
-        handler.setFormatter(formatter);
-        logger.addHandler(handler);
+    static {
+        LOGGER = Logger.getLogger(LOGGER_NAME);
+        
+        StaticLoggerBinder.getSingleton();
     }
     
     public static Logger getLogger() {
-        return logger;
+        return LOGGER;
     }
     
     public static void logError(String message) {
-        logger.log(Level.SEVERE, message);
-        handler.flush();
+        LOGGER.log(Level.SEVERE, message);
     }
     
     public static void logInfo(String message) {
-        logger.log(Level.INFO, message);
-        handler.flush();
+        LOGGER.log(Level.INFO, message);
+    }
+
+    public static void logTrace(String msg) {
+        LOGGER.log(Level.FINE, msg);
+    }
+    
+    /**
+     * Inconvenience method for GoodLogger; use the other methods as they are
+     * easier.
+     * @param l
+     * @param format
+     * @param arguments 
+     */
+    public static void log(Level l, String format, Object[] arguments) {
+        LOGGER.log(l, format, arguments);
+    }
+    
+    /**
+     * Inconvenience method for GoodLogger; use the other methods as they are
+     * easier.
+     * @param l
+     * @param t
+     * @param provider 
+     */
+    public static void log(Level l, Throwable t, String provider) {
+        LOGGER.log(l, t, () -> provider);
+    }
+
+    public static void logWarning(String msg) {
+        LOGGER.log(Level.WARNING, msg);
     }
 }

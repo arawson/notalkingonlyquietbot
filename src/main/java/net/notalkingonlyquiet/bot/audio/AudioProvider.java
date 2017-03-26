@@ -3,7 +3,6 @@ package net.notalkingonlyquiet.bot.audio;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.track.playback.AudioFrame;
-import net.notalkingonlyquiet.bot.LogUtil;
 import sx.blah.discord.handle.audio.IAudioProvider;
 
 /**

@@ -2,6 +2,7 @@ build/
 .nb-gradle/
 .gradle/
 #log added during development
-log
+*.log
 #don't commit your token
 config.toml
+private/

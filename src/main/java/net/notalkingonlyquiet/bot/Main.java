@@ -84,9 +84,11 @@ public class Main {
 
     /**
      * @param args the command line arguments
+     * @throws sx.blah.discord.util.DiscordException
+     * @throws sx.blah.discord.util.RateLimitException
+     * @throws java.io.IOException
      */
     public static void main(String[] args) throws DiscordException, RateLimitException, IOException {
-        LogUtil.initLogging();
 
         Toml toml = new Toml().read(new File("./config.toml"));
         Config config = toml.to(Config.class);
@@ -264,9 +266,6 @@ public class Main {
             LogUtil.logError(ex.toString());
             channel.sendMessage("You must give me a _valid_ URL as the first argument to that command.");
             return false;
-        } catch (IOException ex) {
-            LogUtil.logError(ex.toString());
-            channel.sendMessage("Error playing URL: " + ex.getMessage());
         }
 
         return true;
