@@ -29,3 +29,7 @@ dependencies {
     compile "com.google.code.gson:gson:2.8.0"
     compile "com.google.guava:guava:21.0"
 }
+
+run {
+    standardInput = System.in
+}

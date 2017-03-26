@@ -3,6 +3,7 @@ package net.notalkingonlyquiet.bot.audio;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.track.playback.AudioFrame;
+import net.notalkingonlyquiet.bot.LogUtil;
 import sx.blah.discord.handle.audio.IAudioProvider;
 
 /**
@@ -19,15 +20,18 @@ public class AudioProvider implements IAudioProvider {
 
     @Override
     public boolean isReady() {
+//        LogUtil.logInfo("isReady?");
         if (lastFrame == null) {
             lastFrame = audioPlayer.provide();
         }
         
+//        LogUtil.logInfo("" + (lastFrame != null));
         return lastFrame != null;
     }
 
     @Override
     public byte[] provide() {
+//        LogUtil.logInfo("provide");
         if (lastFrame == null) {
            lastFrame = audioPlayer.provide();
         }

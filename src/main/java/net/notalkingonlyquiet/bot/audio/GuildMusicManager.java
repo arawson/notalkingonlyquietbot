@@ -8,6 +8,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import net.notalkingonlyquiet.bot.LogUtil;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.IVoiceChannel;
@@ -29,8 +30,8 @@ public class GuildMusicManager extends AudioEventAdapter {
     public GuildMusicManager(AudioPlayerManager manager, EventBus hostBus) {
         player = manager.createPlayer();
         queue = new LinkedBlockingQueue<>();
-        player.addListener(this);
         this.hostBus = hostBus;
+        player.addListener(this);
     }
 
     public synchronized AudioProvider getAudioProvider() {
@@ -44,40 +45,80 @@ public class GuildMusicManager extends AudioEventAdapter {
     }
 
     public synchronized boolean hasNextTrack() {
-        return queue.poll() != null;
+        return queue.peek()!= null;
     }
 
     public synchronized void nextTrack() {
         player.startTrack(queue.poll(), false);
     }
-    
+
     public synchronized boolean isPlaying() {
         return player.getPlayingTrack() != null;
     }
 
     @Override
     public synchronized void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
-        if (endReason.mayStartNext) {
-            if (hasNextTrack()) {
-                nextTrack();
-            } else {
-                //send signal to exit audio channel
-            }
+        LogUtil.logInfo("on track end");
+        switch (endReason) {
+            case FINISHED:
+                LogUtil.logInfo("finished");
+                LogUtil.logInfo("still have " + queue.size() + " tracks to play");
+            case CLEANUP:
+                LogUtil.logInfo("cleanup");
+            case STOPPED:
+                LogUtil.logInfo("stopped");
+                if (endReason.mayStartNext && hasNextTrack()) {
+                    LogUtil.logInfo("has next track");
+                    nextTrack();
+                } else {
+                    LogUtil.logInfo("cant start next or has no next");
+                    disconnect();
+                }
+                break;
+            case LOAD_FAILED:
+                LogUtil.logInfo("failed");
+                break;
+            case REPLACED:
+                LogUtil.logInfo("replaced");
         }
     }
 
-    public synchronized void userQueue(IChannel channel, IUser user) throws
-            MissingPermissionsException, RateLimitException, DiscordException {
+    private void disconnect() {
+        if (currentVoiceChannel != null) {
+            LogUtil.logInfo("current voice channel is not null");
+            LogUtil.logInfo("Try to leave voice channel.");
+            player.stopTrack();
+            currentVoiceChannel.leave();
+            currentVoiceChannel = null;
+        }
+    }
+
+    public synchronized void setCurrentVoiceChannel(IVoiceChannel channel) {
+        LogUtil.logInfo("set current voice channel");
+//        currentVoiceChannel = channel;
+    }
+
+    public synchronized void userQueue(IChannel channel, IUser user, AudioTrack track) {
+        LogUtil.logInfo("user queue");
         if (user.getConnectedVoiceChannels().size() < 1) {
-            channel.sendMessage("You aren't in a voice channel!");
+            try {
+                channel.sendMessage("You aren't  in a voice channel!");
+            } catch (MissingPermissionsException | DiscordException | RateLimitException ex) {
+                LogUtil.logError("Unable to send to user: " + ex.getLocalizedMessage());
+            }
         } else {
-            //TODO: filter out other bots
-            //TODO: is it possible for normal users to connect to multiple voice channels at once?
+            if (user.isBot()) return;
+            
             IVoiceChannel newVoice = user.getConnectedVoiceChannels().get(0);
             if (isPlaying() && newVoice != currentVoiceChannel) {
-                channel.sendMessage("You must stop playing to play in a new voice channel.");
+                try {
+                    channel.sendMessage("You must stop playing to play in a new voice channel.");
+                } catch (MissingPermissionsException | DiscordException | RateLimitException ex) {
+                    LogUtil.logError("Unable to send to user: " + ex.getLocalizedMessage());
+                }
             } else {
-                
+                currentVoiceChannel = newVoice;
+                queue(track);
             }
         }
     }

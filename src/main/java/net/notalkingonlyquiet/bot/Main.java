@@ -19,8 +19,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import net.notalkingonlyquiet.bot.config.Config;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
@@ -94,6 +92,10 @@ public class Main {
         Config config = toml.to(Config.class);
 
         Main main = new Main(config);
+        
+        System.in.read();
+        
+        main.exit();
     }
 
     @EventSubscriber
@@ -156,14 +158,10 @@ public class Main {
 
             boolean handled = false;
             switch (command) {
-                case "join":
-                    handled = true;
+                case "play":
                     lastChannel.put(guild, channel);
                     join(channel, user);
-                    break;
-
-                case "playurl":
-                    handled = playUrl(channel, args);
+                    handled = playUrl(channel, user, args);
                     break;
 
                 case "skip":
@@ -190,12 +188,14 @@ public class Main {
                 channel.sendMessage("That room is full!");
             } else {
                 voice.join();
+                getGuildAudioPlayer(channel.getGuild()).setCurrentVoiceChannel(voice);
                 channel.sendMessage("Connected to **" + voice.getName() + "**.");
             }
         }
     }
 
-    private boolean playUrl(IChannel channel, String[] args) throws MissingPermissionsException, RateLimitException, DiscordException {
+    private boolean playUrl(IChannel channel, IUser user, String[] args) throws MissingPermissionsException, RateLimitException, DiscordException {
+        LogUtil.logInfo("playUrl command");
         if (args.length == 0) {
             channel.sendMessage("You must give me a URL as the first argument to that command.");
             return false;
@@ -203,22 +203,26 @@ public class Main {
 
         try {
             URL u = new URL(args[0]);
+            LogUtil.logInfo("load music manager");
             GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
 
             playerManager.loadItemOrdered(musicManager, u.toString(), new AudioLoadResultHandler() {
                 @Override
                 public void trackLoaded(AudioTrack track) {
+                    LogUtil.logInfo("track loaded");
                     try {
                         channel.sendMessage("Adding to queue " + track.getInfo().title);
                     } catch (MissingPermissionsException | DiscordException | RateLimitException ex) {
                         LogUtil.logError(ex.getLocalizedMessage());
                     }
 
-                    play(channel.getGuild(), musicManager, track);
+                    musicManager.userQueue(channel, user, track);
+//                    play(channel.getGuild(), musicManager, track);
                 }
 
                 @Override
                 public void playlistLoaded(AudioPlaylist playlist) {
+                    LogUtil.logInfo("playlist loaded");
                     AudioTrack firstTrack = playlist.getSelectedTrack();
                     if (firstTrack == null) {
                         firstTrack = playlist.getTracks().get(0);
@@ -230,11 +234,13 @@ public class Main {
                     } catch (MissingPermissionsException | DiscordException | RateLimitException ex) {
                         LogUtil.logError(ex.getLocalizedMessage());
                     }
-                    play(channel.getGuild(), musicManager, firstTrack);
+                    
+                    musicManager.userQueue(channel, user, firstTrack);
                 }
 
                 @Override
                 public void noMatches() {
+                    LogUtil.logInfo("no match");
                     try {
                         channel.sendMessage("Could not find anything at " + u.toString());
                     } catch (MissingPermissionsException | DiscordException | RateLimitException ex) {
@@ -244,6 +250,7 @@ public class Main {
 
                 @Override
                 public void loadFailed(FriendlyException fe) {
+                    LogUtil.logInfo("load failed");
                     try {
                         channel.sendMessage("Could not play " + u.toString());
                     } catch (MissingPermissionsException | DiscordException | RateLimitException ex) {
@@ -266,8 +273,10 @@ public class Main {
     }
 
     private void play(IGuild guild, GuildMusicManager musicManager, AudioTrack track) {
-        connectToFirstVoiceChannel(guild.getAudioManager());
-        musicManager.scheduler.queue(track);
+        LogUtil.logInfo("play subroutine");
+//        connectToFirstVoiceChannel(guild.getAudioManager());
+//        musicManager.queue(track);
+//        musicManager.userQueue(channel, user);
     }
 
     private synchronized GuildMusicManager getGuildAudioPlayer(IGuild guild) {
@@ -275,7 +284,7 @@ public class Main {
         GuildMusicManager musicManager = musicManagers.get(guildId);
 
         if (musicManager == null) {
-            musicManager = new GuildMusicManager(playerManager);
+            musicManager = new GuildMusicManager(playerManager, eventBus);
             musicManagers.put(guildId, musicManager);
         }
 
@@ -287,18 +296,20 @@ public class Main {
 
     private boolean skipTrack(IChannel channel, String[] args) throws MissingPermissionsException, RateLimitException, DiscordException {
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
-        musicManager.scheduler.nextTrack();
+        musicManager.nextTrack();
         channel.sendMessage("Skipped to next track.");
         return true;
     }
 
     private void connectToFirstVoiceChannel(IAudioManager audioManager) {
+        LogUtil.logInfo("connect to first voice channel");
         for (IVoiceChannel voiceChannel : audioManager.getGuild().getVoiceChannels()) {
             if (voiceChannel.isConnected()) {
                 return;
             }
         }
 
+        LogUtil.logInfo("connecting to arbitrary voice channel");
         //TODO: test this against multiple voice channels
         for (IVoiceChannel voiceChannel : audioManager.getGuild().getVoiceChannels()) {
             try {
@@ -307,5 +318,9 @@ public class Main {
                 LogUtil.logError("Cannot enter voice channel " + voiceChannel.getName() + " " + e);
             }
         }
+    }
+    
+    private void exit() throws DiscordException {
+        client.logout();
     }
 }
