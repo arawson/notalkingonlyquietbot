@@ -7,6 +7,7 @@ sourceCompatibility = '1.8'
 if (!hasProperty('mainClass')) {
     ext.mainClass = 'net.notalkingonlyquiet.bot.Main'
 }
+mainClassName = 'net.notalkingonlyquiet.bot.Main'
 
 repositories {
     mavenCentral()
@@ -24,7 +25,7 @@ repositories {
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.10'
     compile "com.github.austinv11:Discord4j:2.7.0:shaded"
-    compile "com.sedmelluq:lavaplayer:1.2.9"
+    compile "com.sedmelluq:lavaplayer:1.2.20"
     compile "com.moandjiezana.toml:toml4j:0.7.1"
     compile "com.google.code.gson:gson:2.8.0"
     compile "com.google.guava:guava:21.0"
