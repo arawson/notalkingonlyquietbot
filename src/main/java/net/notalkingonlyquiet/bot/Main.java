@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import net.notalkingonlyquiet.bot.config.Config;
+import org.apache.http.client.config.RequestConfig;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventSubscriber;
@@ -75,6 +76,11 @@ public class Main {
 
         AudioSourceManagers.registerRemoteSources(playerManager);
         AudioSourceManagers.registerLocalSource(playerManager);
+
+        playerManager.setHttpRequestConfigurator(
+                (cfg) -> RequestConfig.copy(cfg)
+                        .setConnectTimeout(Main.this.config.performance.timeout)
+                        .build());
     }
 
     void shutdown() throws DiscordException {
@@ -94,9 +100,9 @@ public class Main {
         Config config = toml.to(Config.class);
 
         Main main = new Main(config);
-        
+
         System.in.read();
-        
+
         main.exit();
     }
 
@@ -236,7 +242,7 @@ public class Main {
                     } catch (MissingPermissionsException | DiscordException | RateLimitException ex) {
                         LogUtil.logError(ex.getLocalizedMessage());
                     }
-                    
+
                     musicManager.userQueue(channel, user, firstTrack);
                 }
 
@@ -318,7 +324,7 @@ public class Main {
             }
         }
     }
-    
+
     private void exit() throws DiscordException {
         client.logout();
     }

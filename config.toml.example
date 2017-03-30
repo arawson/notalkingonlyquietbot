@@ -6,3 +6,4 @@ playing = "with fire."
 [performance]
 servers = 1
 threads = 2
+timeout = 10000

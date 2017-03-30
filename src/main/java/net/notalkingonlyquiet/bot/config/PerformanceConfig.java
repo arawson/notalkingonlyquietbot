@@ -8,4 +8,5 @@ package net.notalkingonlyquiet.bot.config;
 public class PerformanceConfig {
     public int servers;
     public int threads;
+    public int timeout;
 }
