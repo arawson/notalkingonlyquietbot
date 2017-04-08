@@ -10,6 +10,7 @@ import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
@@ -18,8 +19,10 @@ import java.util.Map;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import net.notalkingonlyquiet.bot.audio.GuildMusicManager;
 import net.notalkingonlyquiet.bot.config.Config;
+import net.notalkingonlyquiet.bot.googlesearch.YouTubeSearcher;
 import org.apache.http.client.config.RequestConfig;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventSubscriber;
@@ -55,6 +58,7 @@ public final class Bot {
     private final ScheduledThreadPoolExecutor busExecutor;
     private final EventBus eventBus;
     private String playing;
+    private final YouTubeSearcher youTubeSearcher;
 
     private boolean dead = false;
 
@@ -66,6 +70,8 @@ public final class Bot {
         maxServers = config.performance.servers;
         playing = config.login.playing;
         this.client = client;
+
+        youTubeSearcher = new YouTubeSearcher(config.google);
 
         Arrays.asList(
                 new PlayCommand(),
@@ -163,9 +169,9 @@ public final class Bot {
             mm = new GuildMusicManager(playerManager, eventBus);
             musicManagers.put(guild, mm);
         }
-        
+
         guild.getAudioManager().setAudioProvider(mm.getAudioProvider());
-        
+
         return mm;
     }
 
@@ -214,6 +220,23 @@ public final class Bot {
 
             //TODO: insert youtube search here
             if (u1 == null) {
+                try {
+                    u1 = youTubeSearcher.performSearch(
+                            Arrays.asList(args)
+                                    .stream()
+                                    .map(Object::toString)
+                                    .collect(Collectors.joining(" ")));
+
+                    if (u1 != null) {
+                        FireAndForget.sendMessage(channel, "Playing: " + u1.toString());
+                    }
+                } catch (IOException ex) {
+                    Logger.getLogger(Bot.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+            if (u1 == null) {
+                FireAndForget.sendMessage(channel, "Either the URL is invalid, or the search did not turn up anything.");
                 throw new IllegalArgumentException("Either the URL is invalid, or the search did not turn up anything.");
             }
 

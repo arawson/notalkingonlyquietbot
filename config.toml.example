@@ -13,3 +13,4 @@ prefix = "!"
 
 [google]
 apiToken = ""
+appName = ""
