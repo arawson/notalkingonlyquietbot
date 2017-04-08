@@ -34,6 +34,10 @@ public class GuildMusicManager extends AudioEventAdapter {
         this.hostBus = hostBus;
         player.addListener(this);
     }
+    
+    public synchronized void setVolume(int level) {
+        player.setVolume(level);
+    }
 
     public synchronized AudioProvider getAudioProvider() {
         return new AudioProvider(player);
