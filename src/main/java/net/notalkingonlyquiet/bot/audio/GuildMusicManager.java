@@ -8,6 +8,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import net.notalkingonlyquiet.bot.FireAndForget;
 import net.notalkingonlyquiet.bot.LogUtil;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IUser;
@@ -45,7 +46,7 @@ public class GuildMusicManager extends AudioEventAdapter {
     }
 
     public synchronized boolean hasNextTrack() {
-        return queue.peek()!= null;
+        return queue.peek() != null;
     }
 
     public synchronized void nextTrack() {
@@ -59,6 +60,8 @@ public class GuildMusicManager extends AudioEventAdapter {
     @Override
     public synchronized void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
         LogUtil.logInfo("on track end");
+//        player.stopTrack();
+//        this.nextTrack(); this almost fixed it, just had a huge delay
         switch (endReason) {
             case FINISHED:
                 LogUtil.logInfo("finished");
@@ -107,15 +110,13 @@ public class GuildMusicManager extends AudioEventAdapter {
                 LogUtil.logError("Unable to send to user: " + ex.getLocalizedMessage());
             }
         } else {
-            if (user.isBot()) return;
-            
+            if (user.isBot()) {
+                return;
+            }
+
             IVoiceChannel newVoice = user.getConnectedVoiceChannels().get(0);
             if (isPlaying() && newVoice != currentVoiceChannel) {
-                try {
-                    channel.sendMessage("You must stop playing to play in a new voice channel.");
-                } catch (MissingPermissionsException | DiscordException | RateLimitException ex) {
-                    LogUtil.logError("Unable to send to user: " + ex.getLocalizedMessage());
-                }
+                FireAndForget.sendMessage(channel, "You must stop playing to play in a new voice channel.");
             } else {
                 currentVoiceChannel = newVoice;
                 queue(track);

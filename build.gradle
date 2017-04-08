@@ -31,9 +31,11 @@ dependencies {
     compile "com.google.guava:guava:21.0"
     compile "org.slf4j:slf4j-api:1.7.21"
     compile "org.slf4j:slf4j-jdk14:1.7.21"
+    compile 'com.google.apis:google-api-services-youtube:v3-rev182-1.22.0'
 }
 
 run {
     standardInput = System.in
     applicationDefaultJvmArgs = ["-Djava.util.logging.config.file=logging.properties"]
 }
+
