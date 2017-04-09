@@ -1,4 +1,3 @@
-
 package net.notalkingonlyquiet.bot.fun;
 
 import com.google.gson.Gson;
@@ -21,10 +20,10 @@ import sx.blah.discord.handle.obj.IGuild;
  * @author arawson
  */
 public class MemeMap {
-    
+
     private Map<String, Map<Type, ArrayList<String>>> guildMemes = new HashMap<>();
-    
-    public Map<Type, ArrayList<String>> getMemes(IGuild guild) {
+
+    public synchronized Map<Type, ArrayList<String>> getMemes(IGuild guild) {
         Map<Type, ArrayList<String>> get = guildMemes.get(guild.getID());
         if (get == null) {
             get = new HashMap<>();
@@ -35,11 +34,11 @@ public class MemeMap {
         }
         return get;
     }
-    
+
     public static MemeMap getMemeMap(String memeFile) throws FileNotFoundException, IOException {
         MemeMap memes;
         File f = new File(memeFile);
-        
+
         if (f.exists()) {
             try (Reader memeInput = new FileReader(f)) {
                 Gson gson = GsonUtil.getGson();
@@ -48,21 +47,23 @@ public class MemeMap {
         } else {
             memes = new MemeMap();
         }
-        
+
         return memes;
     }
-    
+
     public static void saveMemeMap(String memeFile, MemeMap memeMap) throws IOException {
-        try (Writer memeOutput = new FileWriter(memeFile)) {
-            Gson gson = GsonUtil.getGson();
-            gson.toJson(memeMap, memeOutput);
-            memeOutput.flush();
+        synchronized (memeMap) {
+            try (Writer memeOutput = new FileWriter(memeFile)) {
+                Gson gson = GsonUtil.getGson();
+                gson.toJson(memeMap, memeOutput);
+                memeOutput.flush();
+            }
         }
     }
 
-    public void putMeme(IGuild guild, Type type, String link) {
+    public synchronized void putMeme(IGuild guild, Type type, String link) {
         Map<Type, ArrayList<String>> memes = getMemes(guild);
-        
+
         if (memes.containsKey(type)) {
             memes.get(type).add(link);
         } else {
@@ -71,11 +72,11 @@ public class MemeMap {
             memes.put(type, list);
         }
     }
-    
+
     public enum Type {
         PLAYABLE,
         IMAGE;
-        
+
         public static Type get(String t) {
             Type type = null;
             switch (t) {
@@ -90,7 +91,7 @@ public class MemeMap {
         }
 
         public static Type random() {
-            return values()[(int)(Math.random() * values().length)];
+            return values()[(int) (Math.random() * values().length)];
         }
     }
 }

@@ -2,6 +2,7 @@
 package net.notalkingonlyquiet.bot;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import net.notalkingonlyquiet.bot.fun.MemeMap;
 import sx.blah.discord.handle.obj.IChannel;
@@ -28,7 +29,7 @@ final class MemeCommand implements Command {
 
     @Override
     public void execute(String[] args, IChannel channel, IUser u) throws RateLimitException, DiscordException, MissingPermissionsException {
-        Map<MemeMap.Type, ArrayList<String>> memes = bot.getMemeManager().getMemeMap().getMemes(channel.getGuild());
+        Map<MemeMap.Type, ArrayList<String>> memes = new HashMap<>(bot.getMemeManager().getMemeMap().getMemes(channel.getGuild()));
         
         if (memes == null || memes.isEmpty()) {
             FireAndForget.sendMessage(channel, "There aren't any memes for this server yet.");

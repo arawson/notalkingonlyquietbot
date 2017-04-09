@@ -20,15 +20,19 @@ public class MemeManager {
     }
     
     void deinit() {
+        save();
+    }
+
+    MemeMap getMemeMap() {
+        return memeMap;
+    }
+
+    void save() {
         try {
             MemeMap.saveMemeMap(memeFile, memeMap);
         } catch (IOException ex) {
             LogUtil.logError("Error saving meme file...");
             LogUtil.logError(ex.getLocalizedMessage());
         }
-    }
-
-    MemeMap getMemeMap() {
-        return memeMap;
     }
 }

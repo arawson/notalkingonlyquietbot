@@ -60,6 +60,7 @@ final class AddMemeCommand implements Command {
         
         bot.getMemeManager().getMemeMap().putMeme(channel.getGuild(), type, link);
         FireAndForget.sendMessage(channel, "Meme added.");
+        bot.getMemeManager().save();
     }
     
 }
