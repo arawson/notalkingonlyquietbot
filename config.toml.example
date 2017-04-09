@@ -14,3 +14,7 @@ prefix = "!"
 [google]
 apiToken = ""
 appName = ""
+
+[memes]
+memeFile = "./memes.json"
+showMemes = 1

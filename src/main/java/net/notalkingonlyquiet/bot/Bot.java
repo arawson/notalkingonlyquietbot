@@ -6,6 +6,7 @@ import com.google.common.eventbus.EventBus;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,11 +42,14 @@ public final class Bot {
     private final IDiscordClient client;
     private final String prefix;
     private final int maxServers;
+    
     //associate servers to audio channels
     private final Map<IGuild, IChannel> lastChannel = new HashMap<>();
     private final Map<IGuild, GuildMusicManager> musicManagers = new HashMap<>();
     private final AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
     private final Map<String, Command> commands = new HashMap<>();
+    
+    private final MemeManager memeManager;
 
     private final ScheduledThreadPoolExecutor busExecutor;
     private final EventBus eventBus;
@@ -54,7 +58,7 @@ public final class Bot {
 
     private boolean dead = false;
 
-    public Bot(IDiscordClient client, Config config) {
+    public Bot(IDiscordClient client, Config config) throws IOException {
         busExecutor = new ScheduledThreadPoolExecutor(config.performance.threads);
         eventBus = new AsyncEventBus(busExecutor);
 
@@ -64,11 +68,14 @@ public final class Bot {
         this.client = client;
 
         youTubeSearcher = new YouTubeSearcher(config.google);
+        memeManager = new MemeManager(config.memes);
 
         Arrays.asList(
                 new PlayCommand(this),
                 new SkipCommand(this),
-                new VolumeCommand(this)
+                new VolumeCommand(this),
+                new MemeCommand(this),
+                new AddMemeCommand(this)
         ).stream().forEach(
                 cmd -> {
                     commands.put(cmd.getBase(), cmd);
@@ -91,6 +98,7 @@ public final class Bot {
 
     public void forceShutdown() {
         //TODO: what cleanup on forced shutdown?
+        memeManager.deinit();
     }
 
     @EventSubscriber
@@ -127,14 +135,13 @@ public final class Bot {
     public void onMessage(MessageReceivedEvent event) {
         IMessage message = event.getMessage();
         IChannel channel = message.getChannel();
-        IGuild guild = message.getGuild(); //guild is server
         IUser user = message.getAuthor();
 
         if (user.isBot()) {
             return;
         }
 
-        //LogUtil.logInfo(guild.getName() + ":" + channel.getName() + ":" + user.getName() + ": " + message.getContent());
+        LogUtil.logInfo(message.getGuild().getName() + ":" + channel.getName() + ":" + user.getName() + ": " + message.getContent());
         String[] split = message.getContent().split(" ");
 
         if (split.length >= 1 && split[0].startsWith(prefix)) {
@@ -142,16 +149,22 @@ public final class Bot {
             String[] args = split.length >= 2
                     ? Arrays.copyOfRange(split, 1, split.length)
                     : new String[0];
+            
+            internalCommand(command, args, channel, user);
+        }
+    }
+    
+    synchronized void internalCommand(String command, String[] args, IChannel channel, IUser user) {
+        //TODO: decouple using event bus
 
-            Command c = commands.get(command);
-            if (c == null) {
-                FireAndForget.sendMessage(channel, "I'm sorry " + user.getName() + ". I'm afraid I can't do that.");
-            } else {
-                try {
-                    c.execute(args, channel, user);
-                } catch (RateLimitException | DiscordException | MissingPermissionsException ex) {
-                    Logger.getLogger(Bot.class.getName()).log(Level.SEVERE, null, ex);
-                }
+        Command c = commands.get(command);
+        if (c == null) {
+            FireAndForget.sendMessage(channel, "I'm sorry " + user.getName() + ". I'm afraid I can't do that.");
+        } else {
+            try {
+                c.execute(args, channel, user);
+            } catch (RateLimitException | DiscordException | MissingPermissionsException ex) {
+                Logger.getLogger(Bot.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
@@ -196,5 +209,9 @@ public final class Bot {
     
     AudioPlayerManager getAudioPlayerManager() {
         return playerManager;
+    }
+
+    MemeManager getMemeManager() {
+        return memeManager;
     }
 }

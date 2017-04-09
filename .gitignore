@@ -7,3 +7,4 @@ build/
 #don't commit your token
 config.toml
 private/
+memes.json

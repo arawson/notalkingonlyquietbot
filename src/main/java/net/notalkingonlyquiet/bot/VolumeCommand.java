@@ -36,6 +36,7 @@ final class VolumeCommand implements Command {
             int level = Integer.parseInt(args[0]);
             
             if (level < 0 || level > 100) {
+                FireAndForget.sendMessage(channel, "The volume must be between 0 and 100");
                 throw new IllegalArgumentException("The volume must be between 0 and 100");
             }
             
