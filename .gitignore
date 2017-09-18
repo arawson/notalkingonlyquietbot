@@ -4,6 +4,7 @@ build/
 .gradle/
 #log added during development
 *.log
+notalkingonlyquiet*.log*
 #don't commit your token
 config.toml
 private/
