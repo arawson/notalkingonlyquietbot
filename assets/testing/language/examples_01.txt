@@ -1,0 +1,35 @@
+#convolutional approach: look at surrounding words?
+
+#need better storage than plaintext?
+
+#should trigger of commands be limited to using @memeweaver?
+#almost definitely, or bot gets really annoying
+
+#also need the possibility of a designated bot channel
+#set by admins
+
+#what are the verbs the bot should care about?
+#play, skip, set
+
+#things the bot should recognize like a proper noun:
+#users, URLs (link to content such as an image or video), internal commands (
+#like volume, ???)
+
+#things the bot should recognize as parameters (
+
+#things the bot should recognize as some kind of other noun:
+#???
+
+#meme command reroutes to play command, but grabs meme list, how should this
+#work with easy commands?
+#meme @memeweaver
+
+#what are some other phrases that might be nice to include?
+#too loud
+#play us off
+#custom things, eg. fart with reverb
+
+#priorities:
+#which commands to support / test for in unit testing
+#basic interface of easy command system
+#unit tests for easy command based off of some example input format

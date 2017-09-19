@@ -1,8 +1,8 @@
 
-package net.notalkingonlyquiet.bot;
+package net.notalkingonlyquiet.bot.commands;
 
-import java.io.File;
 import java.io.IOException;
+import net.notalkingonlyquiet.bot.LogUtil;
 import net.notalkingonlyquiet.bot.config.Memes;
 import net.notalkingonlyquiet.bot.fun.MemeMap;
 
@@ -10,6 +10,7 @@ import net.notalkingonlyquiet.bot.fun.MemeMap;
  *
  * @author arawson
  */
+//TODO: convert to interface for dependancy injection and unit testing
 public class MemeManager {
     private final MemeMap memeMap;
     private final String memeFile;

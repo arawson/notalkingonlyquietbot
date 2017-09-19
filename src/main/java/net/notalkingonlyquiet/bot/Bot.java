@@ -1,5 +1,12 @@
 package net.notalkingonlyquiet.bot;
 
+import net.notalkingonlyquiet.bot.commands.MemeCommand;
+import net.notalkingonlyquiet.bot.commands.SkipCommand;
+import net.notalkingonlyquiet.bot.commands.Command;
+import net.notalkingonlyquiet.bot.commands.MemeManager;
+import net.notalkingonlyquiet.bot.commands.PlayCommand;
+import net.notalkingonlyquiet.bot.commands.AddMemeCommand;
+import net.notalkingonlyquiet.bot.commands.VolumeCommand;
 import com.google.common.base.MoreObjects;
 import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
@@ -37,6 +44,7 @@ import sx.blah.discord.util.RateLimitException;
  *
  * @author arawson
  */
+//TODO: rename/convert this to discord connection manager
 public final class Bot {
 
     private final IDiscordClient client;
@@ -74,8 +82,8 @@ public final class Bot {
                 new PlayCommand(this),
                 new SkipCommand(this),
                 new VolumeCommand(this),
-                new MemeCommand(this),
-                new AddMemeCommand(this)
+                new MemeCommand(this, memeManager),
+                new AddMemeCommand(this, memeManager)
         ).stream().forEach(
                 cmd -> {
                     commands.put(cmd.getBase(), cmd);
@@ -98,7 +106,7 @@ public final class Bot {
 
     public void forceShutdown() {
         //TODO: what cleanup on forced shutdown?
-        memeManager.deinit();
+//        memeManager.deinit();
     }
 
     @EventSubscriber
@@ -154,7 +162,8 @@ public final class Bot {
         }
     }
     
-    synchronized void internalCommand(String command, String[] args, IChannel channel, IUser user) {
+    //TODO: get rid of this completely with easy commands
+    public synchronized void internalCommand(String command, String[] args, IChannel channel, IUser user) {
         //TODO: decouple using event bus
 
         Command c = commands.get(command);
@@ -169,7 +178,8 @@ public final class Bot {
         }
     }
 
-    GuildMusicManager getGuildMusicManager(IGuild guild) {
+    //TODO: this needs to go to the audio module
+    public GuildMusicManager getGuildMusicManager(IGuild guild) {
         GuildMusicManager mm = musicManagers.get(guild);
         if (mm == null) {
             mm = new GuildMusicManager(playerManager, eventBus);
@@ -181,7 +191,8 @@ public final class Bot {
         return mm;
     }
 
-    boolean joinUsersAudioChannel(IChannel channel, IUser user) {
+    //TODO: this needs to go to the audio module
+    public boolean joinUsersAudioChannel(IChannel channel, IUser user) {
         boolean result = false;
         //Preconditions.checkArgument(!user.isBot(), "I don't answer to bots like you, " + user.getName() + ".");
         if (user.getConnectedVoiceChannels().size() < 1) {
@@ -203,15 +214,11 @@ public final class Bot {
         return result;
     }
 
-    YouTubeSearcher getYouTubeSearcher() {
+    public YouTubeSearcher getYouTubeSearcher() {
         return youTubeSearcher;
     }
     
-    AudioPlayerManager getAudioPlayerManager() {
+    public AudioPlayerManager getAudioPlayerManager() {
         return playerManager;
-    }
-
-    MemeManager getMemeManager() {
-        return memeManager;
     }
 }

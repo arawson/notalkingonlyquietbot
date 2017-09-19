@@ -1,5 +1,5 @@
 
-package net.notalkingonlyquiet.bot;
+package net.notalkingonlyquiet.bot.commands;
 
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IUser;

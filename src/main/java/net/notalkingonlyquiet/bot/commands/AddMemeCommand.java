@@ -1,10 +1,10 @@
 
-package net.notalkingonlyquiet.bot;
+package net.notalkingonlyquiet.bot.commands;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import net.notalkingonlyquiet.bot.Bot;
+import net.notalkingonlyquiet.bot.FireAndForget;
 import net.notalkingonlyquiet.bot.fun.MemeMap;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IUser;
@@ -16,11 +16,14 @@ import sx.blah.discord.util.RateLimitException;
  *
  * @author arawson
  */
-final class AddMemeCommand implements Command {
+public final class AddMemeCommand implements Command {
     private final Bot bot;
+    private final MemeManager manager;
 
-    public AddMemeCommand(Bot bot) {
+    //TODO: convert to dependancy injection
+    public AddMemeCommand(Bot bot, MemeManager manager) {
         this.bot = bot;
+        this.manager = manager;
     }
 
     @Override
@@ -58,9 +61,9 @@ final class AddMemeCommand implements Command {
             throw new IllegalArgumentException("I only accept URLs for the make-a-meme foundation.", ex);
         }
         
-        bot.getMemeManager().getMemeMap().putMeme(channel.getGuild(), type, link);
+        manager.getMemeMap().putMeme(channel.getGuild(), type, link);
         FireAndForget.sendMessage(channel, "Meme added.");
-        bot.getMemeManager().save();
+        manager.save();
     }
     
 }

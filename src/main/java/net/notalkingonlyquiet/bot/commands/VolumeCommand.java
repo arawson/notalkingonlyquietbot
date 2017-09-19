@@ -1,6 +1,8 @@
 
-package net.notalkingonlyquiet.bot;
+package net.notalkingonlyquiet.bot.commands;
 
+import net.notalkingonlyquiet.bot.Bot;
+import net.notalkingonlyquiet.bot.FireAndForget;
 import net.notalkingonlyquiet.bot.audio.GuildMusicManager;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IUser;
@@ -12,11 +14,11 @@ import sx.blah.discord.util.RateLimitException;
  *
  * @author arawson
  */
-final class VolumeCommand implements Command {
+public final class VolumeCommand implements Command {
     
     private final Bot outer;
 
-    VolumeCommand(Bot outer) {
+    public VolumeCommand(Bot outer) {
         this.outer = outer;
     }
 

@@ -1,9 +1,5 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-package net.notalkingonlyquiet.bot;
+
+package net.notalkingonlyquiet.bot.commands;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
@@ -16,6 +12,9 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import net.notalkingonlyquiet.bot.Bot;
+import net.notalkingonlyquiet.bot.FireAndForget;
+import net.notalkingonlyquiet.bot.LogUtil;
 import net.notalkingonlyquiet.bot.audio.GuildMusicManager;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IUser;
@@ -27,11 +26,11 @@ import sx.blah.discord.util.RateLimitException;
  *
  * @author arawson
  */
-final class PlayCommand implements Command {
+public final class PlayCommand implements Command {
     
     private final Bot outer;
 
-    PlayCommand(final Bot outer) {
+    public PlayCommand(final Bot outer) {
         this.outer = outer;
     }
 
