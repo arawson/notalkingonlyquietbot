@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import net.notalkingonlyquiet.bot.Bot;
-import net.notalkingonlyquiet.bot.FireAndForget;
+import net.notalkingonlyquiet.bot.core.BotService;
 import net.notalkingonlyquiet.bot.fun.MemeMap;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IUser;
@@ -18,10 +18,10 @@ import sx.blah.discord.util.RateLimitException;
  * @author arawson
  */
 public final class MemeCommand implements Command {
-    private final Bot bot;
+    private final BotService bot;
     private final MemeManager manager;
 
-    public MemeCommand(Bot bot, MemeManager manager) {
+    public MemeCommand(BotService bot, MemeManager manager) {
         this.bot = bot;
         this.manager = manager;
     }
@@ -36,7 +36,7 @@ public final class MemeCommand implements Command {
         Map<MemeMap.Type, ArrayList<String>> memes = new HashMap<>(manager.getMemeMap().getMemes(channel.getGuild()));
         
         if (memes == null || memes.isEmpty()) {
-            FireAndForget.sendMessage(channel, "There aren't any memes for this server yet.");
+            bot.sendMessage(channel, "There aren't any memes for this server yet.");
             throw new IllegalArgumentException("There aren't any memes for this server yet.");
         }
         
@@ -44,7 +44,7 @@ public final class MemeCommand implements Command {
         ArrayList<String> images = memes.get(MemeMap.Type.IMAGE);
         
         if (playables.size() + images.size() == 0) {
-            FireAndForget.sendMessage(channel, "There aren't any memes for this server yet.");
+            bot.sendMessage(channel, "There aren't any memes for this server yet.");
             throw new IllegalArgumentException("There aren't any memes for this server yet.");
         }
         
@@ -53,7 +53,7 @@ public final class MemeCommand implements Command {
         if (args.length > 0) {
             type = MemeMap.Type.get(args[0]);
             if (type == null) {
-                FireAndForget.sendMessage(channel, "What type of meme is that? I don't know.");
+                bot.sendMessage(channel, "What type of meme is that? I don't know.");
                 throw new IllegalArgumentException("What type of meme is that? I don't know.");
             }
         } else {
@@ -71,7 +71,7 @@ public final class MemeCommand implements Command {
         }
         
         if (now.isEmpty()) {
-            FireAndForget.sendMessage(channel, "Looks like the make-a-meme foundation needs more donations!");
+            bot.sendMessage(channel, "Looks like the make-a-meme foundation needs more donations!");
             throw new IllegalArgumentException("Yarrrrrrr");
         }
         
@@ -79,10 +79,11 @@ public final class MemeCommand implements Command {
         
         switch (type) {
             case IMAGE:
-                FireAndForget.sendMessage(channel, item);
+                bot.sendMessage(channel, item);
                 break;
             case PLAYABLE:
-                bot.internalCommand("play", new String[]{item}, channel, u);
+                //TODO: reroute internal commands
+                //bot.internalCommand("play", new String[]{item}, channel, u);
                 break;
         }
     }

@@ -1,4 +1,3 @@
-
 package net.notalkingonlyquiet.bot.commands;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
@@ -13,11 +12,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import net.notalkingonlyquiet.bot.Bot;
-import net.notalkingonlyquiet.bot.FireAndForget;
 import net.notalkingonlyquiet.bot.LogUtil;
+import net.notalkingonlyquiet.bot.audio.AudioService;
+import net.notalkingonlyquiet.bot.audio.CantJoinAudioChannelException;
 import net.notalkingonlyquiet.bot.audio.GuildMusicManager;
+import net.notalkingonlyquiet.bot.core.BotService;
+import net.notalkingonlyquiet.bot.googlesearch.YouTubeSearcher;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IUser;
+import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
@@ -27,11 +30,15 @@ import sx.blah.discord.util.RateLimitException;
  * @author arawson
  */
 public final class PlayCommand implements Command {
-    
-    private final Bot outer;
 
-    public PlayCommand(final Bot outer) {
+    private final BotService outer;
+    private final AudioService audioService;
+    private final YouTubeSearcher searcher;
+
+    public PlayCommand(BotService outer, AudioService audioService, YouTubeSearcher searcher) {
         this.outer = outer;
+        this.searcher = searcher;
+        this.audioService = audioService;
     }
 
     @Override
@@ -54,54 +61,61 @@ public final class PlayCommand implements Command {
         //TODO: insert youtube search here
         if (u1 == null) {
             try {
-                u1 = outer.getYouTubeSearcher().performSearch(Arrays.asList(args).stream().map(Object::toString).collect(Collectors.joining(" ")));
+                //TODO: make a thing 
+                u1 = searcher.performSearch(Arrays.asList(args).stream().map(Object::toString).collect(Collectors.joining(" ")));
                 if (u1 != null) {
-                    FireAndForget.sendMessage(channel, "Playing: " + u1.toString());
+                    outer.sendMessage(channel, "Playing: " + u1.toString());
                 }
             } catch (IOException ex) {
                 Logger.getLogger(Bot.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         if (u1 == null) {
-            FireAndForget.sendMessage(channel, "Either the URL is invalid, or the search did not turn up anything.");
+            outer.sendMessage(channel, "Either the URL is invalid, or the search did not turn up anything.");
             throw new IllegalArgumentException("Either the URL is invalid, or the search did not turn up anything.");
         }
         final URL url = u1;
-        if (!outer.joinUsersAudioChannel(channel, user)) {
+
+        IVoiceChannel voice = null;
+        try {
+            voice = outer.joinUsersAudioChannel(channel.getGuild(), user);
+        } catch (CantJoinAudioChannelException ex) {
+            Logger.getLogger(PlayCommand.class.getName()).log(Level.SEVERE, null, ex);
+            outer.sendMessage(channel, ex.getMessage());
+        }
+
+        if (voice == null) {
             return;
         }
-        GuildMusicManager musicManager = outer.getGuildMusicManager(channel.getGuild());
-        outer.getAudioPlayerManager().loadItemOrdered(musicManager, u1.toString(), new AudioLoadResultHandler() {
+
+        GuildMusicManager musicManager = audioService.getGuildMusicManager(channel.getGuild());
+        musicManager.playURL(user, url, new GuildMusicManager.PlayFeedbackListener() {
             @Override
-            public void trackLoaded(AudioTrack track) {
-                LogUtil.logInfo("track " + track.getIdentifier() + " loaded");
-                FireAndForget.sendMessage(channel, "Track loaded.");
+            public void trackLoaded(String identifier) {
                 //TODO: setTrackTitle(getPlayer(channel.getGuild()).queue(u), u.getFile());
-                musicManager.userQueue(channel, user, track);
+                LogUtil.logInfo("track " + identifier + " loaded");
+                //outer.sendMessage(channel, "Track loaded.");
             }
 
             @Override
-            public void playlistLoaded(AudioPlaylist playlist) {
-                LogUtil.logInfo("playlist loaded " + playlist.getName());
-                AudioTrack firstTrack = playlist.getSelectedTrack();
-                if (firstTrack == null) {
-                    firstTrack = playlist.getTracks().get(0);
-                }
-                FireAndForget.sendMessage(channel, "Adding to queue " + firstTrack.getInfo().title + " (first track of playlist " + playlist.getName() + ")");
-                musicManager.userQueue(channel, user, firstTrack);
+            public void playlistLoaded(String name) {
+                LogUtil.logInfo("playlist loaded " + name);
+                //outer.sendMessage(channel, "Adding to queue "
+                        //+ firstTrack.getInfo().title + " (first track of playlist "
+                        //+ playlist.getName() + ")");
                 //TODO: setTrackTitle(getPlayer(channel.getGuild()).queue(u), u.getFile());
             }
 
             @Override
             public void noMatches() {
-                FireAndForget.sendMessage(channel, "Could not play " + url.toString());
+                outer.sendMessage(channel, "Could not play " + url.toString());
             }
 
             @Override
-            public void loadFailed(FriendlyException fe) {
-                FireAndForget.sendMessage(channel, "Could not find anything at " + url.toString());
+            public void LoadFailed(Exception e) {
+                outer.sendMessage(channel, "Could not find anything at " + url.toString());
             }
         });
     }
-    
+
 }

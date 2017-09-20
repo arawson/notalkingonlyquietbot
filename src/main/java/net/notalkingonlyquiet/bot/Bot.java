@@ -1,5 +1,6 @@
 package net.notalkingonlyquiet.bot;
 
+import net.notalkingonlyquiet.bot.core.BotService;
 import net.notalkingonlyquiet.bot.commands.MemeCommand;
 import net.notalkingonlyquiet.bot.commands.SkipCommand;
 import net.notalkingonlyquiet.bot.commands.Command;
@@ -8,6 +9,7 @@ import net.notalkingonlyquiet.bot.commands.PlayCommand;
 import net.notalkingonlyquiet.bot.commands.AddMemeCommand;
 import net.notalkingonlyquiet.bot.commands.VolumeCommand;
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Preconditions;
 import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
@@ -20,7 +22,8 @@ import java.util.Map;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import net.notalkingonlyquiet.bot.audio.GuildMusicManager;
+import net.notalkingonlyquiet.bot.audio.CantJoinAudioChannelException;
+import net.notalkingonlyquiet.bot.audio.DefaultGuildMusicManager;
 import net.notalkingonlyquiet.bot.config.Config;
 import net.notalkingonlyquiet.bot.googlesearch.YouTubeSearcher;
 import org.apache.http.client.config.RequestConfig;
@@ -45,18 +48,16 @@ import sx.blah.discord.util.RateLimitException;
  * @author arawson
  */
 //TODO: rename/convert this to discord connection manager
-public final class Bot {
+public final class Bot implements BotService {
 
     private final IDiscordClient client;
     private final String prefix;
     private final int maxServers;
-    
+
     //associate servers to audio channels
     private final Map<IGuild, IChannel> lastChannel = new HashMap<>();
-    private final Map<IGuild, GuildMusicManager> musicManagers = new HashMap<>();
-    private final AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
     private final Map<String, Command> commands = new HashMap<>();
-    
+
     private final MemeManager memeManager;
 
     private final ScheduledThreadPoolExecutor busExecutor;
@@ -78,10 +79,11 @@ public final class Bot {
         youTubeSearcher = new YouTubeSearcher(config.google);
         memeManager = new MemeManager(config.memes);
 
+        //TODO: manage commands somewhere else
         Arrays.asList(
-                new PlayCommand(this),
-                new SkipCommand(this),
-                new VolumeCommand(this),
+                //new PlayCommand(this),//these 3 require audio service
+                //new SkipCommand(this),
+                //new VolumeCommand(this),
                 new MemeCommand(this, memeManager),
                 new AddMemeCommand(this, memeManager)
         ).stream().forEach(
@@ -89,21 +91,15 @@ public final class Bot {
                     commands.put(cmd.getBase(), cmd);
                 });
 
-        AudioSourceManagers.registerRemoteSources(playerManager);
-        AudioSourceManagers.registerLocalSource(playerManager);
-
-        playerManager.setHttpRequestConfigurator(
-                (cfg) -> RequestConfig.copy(cfg)
-                        .setConnectTimeout(config.performance.timeout)
-                        .build());
-
         client.getDispatcher().registerListener(this);
     }
 
+    @Override
     public boolean isDead() {
         return dead;
     }
 
+    @Override
     public void forceShutdown() {
         //TODO: what cleanup on forced shutdown?
 //        memeManager.deinit();
@@ -157,18 +153,18 @@ public final class Bot {
             String[] args = split.length >= 2
                     ? Arrays.copyOfRange(split, 1, split.length)
                     : new String[0];
-            
+
             internalCommand(command, args, channel, user);
         }
     }
-    
-    //TODO: get rid of this completely with easy commands
+
+    //TODO: get rid of this completely with some guice
     public synchronized void internalCommand(String command, String[] args, IChannel channel, IUser user) {
         //TODO: decouple using event bus
 
         Command c = commands.get(command);
         if (c == null) {
-            FireAndForget.sendMessage(channel, "I'm sorry " + user.getName() + ". I'm afraid I can't do that.");
+            sendMessage(channel, "I'm sorry " + user.getName() + ". I'm afraid I can't do that.");
         } else {
             try {
                 c.execute(args, channel, user);
@@ -178,47 +174,48 @@ public final class Bot {
         }
     }
 
-    //TODO: this needs to go to the audio module
-    public GuildMusicManager getGuildMusicManager(IGuild guild) {
-        GuildMusicManager mm = musicManagers.get(guild);
-        if (mm == null) {
-            mm = new GuildMusicManager(playerManager, eventBus);
-            musicManagers.put(guild, mm);
-        }
-
-        guild.getAudioManager().setAudioProvider(mm.getAudioProvider());
-        
-        return mm;
+    public YouTubeSearcher getYouTubeSearcher() {
+        return youTubeSearcher;
     }
 
-    //TODO: this needs to go to the audio module
-    public boolean joinUsersAudioChannel(IChannel channel, IUser user) {
-        boolean result = false;
-        //Preconditions.checkArgument(!user.isBot(), "I don't answer to bots like you, " + user.getName() + ".");
+    @Override
+    public IVoiceChannel joinUsersAudioChannel(IGuild guild, IUser user) throws CantJoinAudioChannelException {
+        IVoiceChannel result = null;
         if (user.getConnectedVoiceChannels().size() < 1) {
-            FireAndForget.sendMessage(channel, "You aren't in a voice channel, " + user.getName() + ".");
+            throw new CantJoinAudioChannelException("You aren't in a voice channel, " + user.getName() + ".");
         } else {
             IVoiceChannel voice = user.getConnectedVoiceChannels().get(0);
             if (!voice.getModifiedPermissions(client.getOurUser()).contains(Permissions.VOICE_CONNECT)) {
-                FireAndForget.sendMessage(channel, "Can't join " + voice.getName() + " without the voice permission!");
+                throw new CantJoinAudioChannelException("Can't join " + voice.getName() + " without the voice permission!");
             } else if (voice.getUserLimit() != 0 && voice.getConnectedUsers().size() >= voice.getUserLimit()) {
-                FireAndForget.sendMessage(channel, "Can't join " + voice.getName() + ". It is already full.");
+                throw new CantJoinAudioChannelException("Can't join " + voice.getName() + ". It is already full.");
             } else {
-                FireAndForget.joinVoice(voice);
-                
-                getGuildMusicManager(channel.getGuild()).setCurrentVoiceChannel(voice);
-                FireAndForget.sendMessage(channel, "Connecting to " + voice.getName() + ".");
-                result = true;
+                joinVoice(voice);
+                result = voice;
             }
         }
         return result;
     }
-
-    public YouTubeSearcher getYouTubeSearcher() {
-        return youTubeSearcher;
+    
+    @Override
+    public void sendMessage(IChannel channel, String message) {
+        //LogUtil.logInfo("Sending message on " + channel.getName() + ": " + message);
+        try {
+            synchronized(channel) {
+                channel.sendMessage(message);
+            }
+        } catch (MissingPermissionsException | RateLimitException | DiscordException ex) {
+            LogUtil.logError(ex.getMessage());
+        }
     }
     
-    public AudioPlayerManager getAudioPlayerManager() {
-        return playerManager;
+    @Override
+    public void joinVoice(IVoiceChannel channel) {
+        try {
+            channel.join();
+        } catch (MissingPermissionsException ex) {
+            Preconditions.checkArgument(false, "Can't join " + channel.getName() + ".");
+        }
     }
+
 }

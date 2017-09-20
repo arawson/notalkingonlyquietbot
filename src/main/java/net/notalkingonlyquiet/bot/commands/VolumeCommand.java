@@ -1,9 +1,8 @@
-
 package net.notalkingonlyquiet.bot.commands;
 
-import net.notalkingonlyquiet.bot.Bot;
-import net.notalkingonlyquiet.bot.FireAndForget;
+import net.notalkingonlyquiet.bot.audio.AudioService;
 import net.notalkingonlyquiet.bot.audio.GuildMusicManager;
+import net.notalkingonlyquiet.bot.core.BotService;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.DiscordException;
@@ -15,11 +14,13 @@ import sx.blah.discord.util.RateLimitException;
  * @author arawson
  */
 public final class VolumeCommand implements Command {
-    
-    private final Bot outer;
 
-    public VolumeCommand(Bot outer) {
+    private final BotService outer;
+    private final AudioService audioService;
+
+    public VolumeCommand(BotService outer, AudioService audioService) {
         this.outer = outer;
+        this.audioService = audioService;
     }
 
     @Override
@@ -28,29 +29,30 @@ public final class VolumeCommand implements Command {
     }
 
     @Override
-    public void execute(String[] args, IChannel channel, IUser u) throws RateLimitException, DiscordException, MissingPermissionsException {
+    public void execute(String[] args, IChannel channel, IUser u)
+            throws RateLimitException, DiscordException, MissingPermissionsException {
         if (args.length == 0) {
-            FireAndForget.sendMessage(channel, "You must give me a volume level to set.");
+            outer.sendMessage(channel, "You must give me a volume level to set.");
             throw new IllegalArgumentException("The volume command requries a level argument.");
         }
-        
+
         try {
             int level = Integer.parseInt(args[0]);
-            
+
             if (level < 0 || level > 100) {
-                FireAndForget.sendMessage(channel, "The volume must be between 0 and 100");
+                outer.sendMessage(channel, "The volume must be between 0 and 100");
                 throw new IllegalArgumentException("The volume must be between 0 and 100");
             }
-            
-            GuildMusicManager musicManager = outer.getGuildMusicManager(channel.getGuild());
+
+            GuildMusicManager musicManager = audioService.getGuildMusicManager(channel.getGuild());
             musicManager.setVolume(level);
-            
-            FireAndForget.sendMessage(channel, "Set volume to " + level + ".");
+
+            outer.sendMessage(channel, "Set volume to " + level + ".");
         } catch (NumberFormatException e) {
-            FireAndForget.sendMessage(channel, "That is not a valid integer."
+            outer.sendMessage(channel, "That is not a valid integer."
                     + " How the heck am I supposed to set audio to " + args[0] + "?");
             throw e;
         }
     }
-    
+
 }
