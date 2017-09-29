@@ -1,15 +1,35 @@
 package net.notalkingonlyquiet.bot;
 
-import com.moandjiezana.toml.Toml;
-import java.io.File;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import java.io.IOException;
-import net.notalkingonlyquiet.bot.config.Config;
-import sx.blah.discord.api.ClientBuilder;
-import sx.blah.discord.api.IDiscordClient;
+import net.notalkingonlyquiet.bot.core.BusProvider;
+import net.notalkingonlyquiet.bot.core.events.StartEvent;
+import net.notalkingonlyquiet.bot.core.events.StopEvent;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.RateLimitException;
 
-public class Main {
+public final class Main {
+	
+	private final BusProvider busProvider;
+	private final Bot bot;
+
+	@Inject
+	public Main(BusProvider busProvider, Bot bot) {
+		this.busProvider = busProvider;
+		this.bot = bot;
+	}
+	
+	private synchronized void start() {
+		LogUtil.logInfo("Starting the bot...");
+		LogUtil.logInfo("busProvider: " + busProvider.toString());
+		busProvider.getBus().post(new StartEvent());
+	}
+	
+	private synchronized void stop() {
+		busProvider.getBus().post(new StopEvent());
+	}
 
     /**
      * @param args the command line arguments
@@ -18,23 +38,17 @@ public class Main {
      * @throws java.io.IOException
      */
     public static void main(String[] args) throws DiscordException, RateLimitException, IOException {
-        Toml toml = new Toml().read(new File("./config.toml"));
-        Config config = toml.to(Config.class);
-        
-        LogUtil.logInfo("Attempting to connect to Discord...");
-
-        IDiscordClient client = new ClientBuilder().withToken(config.login.token).build();
-        
-        Bot bot = new Bot(client, config);
-
-        client.login();
-
-        LogUtil.logInfo("Login Successful...");
-
-        System.in.read();
-
-        bot.forceShutdown();
-        
-        client.logout();
+		final Injector injector = Guice.createInjector(new OnlyQuietModule());
+		final Main m = injector.getInstance(Main.class);
+		
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				LogUtil.logInfo("Got external shutdown signal...");
+				m.stop();
+			}
+		});
+		
+		m.start();
     }
 }

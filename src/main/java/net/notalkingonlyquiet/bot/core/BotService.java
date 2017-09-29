@@ -12,10 +12,6 @@ import sx.blah.discord.handle.obj.IVoiceChannel;
  * @author arawson
  */
 public interface BotService {
-
-    void forceShutdown();
-
-    boolean isDead();
     
     public IVoiceChannel joinUsersAudioChannel(IGuild guild, IUser user) throws CantJoinAudioChannelException;
     
