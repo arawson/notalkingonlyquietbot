@@ -1,5 +1,6 @@
 package net.notalkingonlyquiet.bot.commands;
 
+import com.google.inject.Inject;
 import net.notalkingonlyquiet.bot.audio.AudioService;
 import net.notalkingonlyquiet.bot.audio.GuildMusicManager;
 import net.notalkingonlyquiet.bot.core.BotService;
@@ -18,6 +19,7 @@ public final class VolumeCommand implements Command {
     private final BotService outer;
     private final AudioService audioService;
 
+	@Inject
     public VolumeCommand(BotService outer, AudioService audioService) {
         this.outer = outer;
         this.audioService = audioService;

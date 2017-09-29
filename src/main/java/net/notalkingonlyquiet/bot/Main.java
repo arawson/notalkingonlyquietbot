@@ -38,8 +38,10 @@ public final class Main {
      * @throws java.io.IOException
      */
     public static void main(String[] args) throws DiscordException, RateLimitException, IOException {
-		final Injector injector = Guice.createInjector(new OnlyQuietModule());
+		final Injector injector = Guice.createInjector(new BotModule());
 		final Main m = injector.getInstance(Main.class);
+		
+		LogUtil.logInfo("Injector is " + injector.toString());
 		
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override

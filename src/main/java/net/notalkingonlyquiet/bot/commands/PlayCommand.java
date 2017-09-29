@@ -1,9 +1,6 @@
 package net.notalkingonlyquiet.bot.commands;
 
-import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
-import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
-import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import com.google.inject.Inject;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -35,6 +32,7 @@ public final class PlayCommand implements Command {
     private final AudioService audioService;
     private final YouTubeSearcher searcher;
 
+	@Inject
     public PlayCommand(BotService outer, AudioService audioService, YouTubeSearcher searcher) {
         this.outer = outer;
         this.searcher = searcher;

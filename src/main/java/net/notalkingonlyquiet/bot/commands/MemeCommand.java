@@ -1,10 +1,10 @@
 
 package net.notalkingonlyquiet.bot.commands;
 
+import com.google.inject.Inject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import net.notalkingonlyquiet.bot.Bot;
 import net.notalkingonlyquiet.bot.core.BotService;
 import net.notalkingonlyquiet.bot.fun.MemeMap;
 import sx.blah.discord.handle.obj.IChannel;
@@ -21,6 +21,7 @@ public final class MemeCommand implements Command {
     private final BotService bot;
     private final MemeManager manager;
 
+	@Inject
     public MemeCommand(BotService bot, MemeManager manager) {
         this.bot = bot;
         this.manager = manager;

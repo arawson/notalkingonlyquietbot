@@ -1,6 +1,7 @@
 
 package net.notalkingonlyquiet.bot.commands;
 
+import com.google.inject.Inject;
 import java.net.MalformedURLException;
 import java.net.URL;
 import net.notalkingonlyquiet.bot.core.BotService;
@@ -20,6 +21,7 @@ public final class AddMemeCommand implements Command {
     private final MemeManager manager;
 
     //TODO: convert to dependancy injection
+	@Inject
     public AddMemeCommand(BotService bot, MemeManager manager) {
         this.bot = bot;
         this.manager = manager;

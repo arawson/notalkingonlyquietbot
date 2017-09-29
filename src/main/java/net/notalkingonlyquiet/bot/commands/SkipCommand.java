@@ -1,7 +1,7 @@
 
 package net.notalkingonlyquiet.bot.commands;
 
-import net.notalkingonlyquiet.bot.Bot;
+import com.google.inject.Inject;
 import net.notalkingonlyquiet.bot.audio.AudioService;
 import net.notalkingonlyquiet.bot.audio.GuildMusicManager;
 import net.notalkingonlyquiet.bot.core.BotService;
@@ -21,6 +21,7 @@ public final class SkipCommand implements Command {
     private final BotService bot;
     private final AudioService audioService;
 
+	@Inject
     public SkipCommand(BotService outer, AudioService audioService) {
         this.bot = outer;
         this.audioService = audioService;

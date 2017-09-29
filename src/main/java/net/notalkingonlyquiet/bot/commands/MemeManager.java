@@ -1,23 +1,26 @@
 
 package net.notalkingonlyquiet.bot.commands;
 
+import com.google.inject.Inject;
 import java.io.IOException;
 import net.notalkingonlyquiet.bot.LogUtil;
-import net.notalkingonlyquiet.bot.config.Memes;
 import net.notalkingonlyquiet.bot.fun.MemeMap;
 
 /**
  *
  * @author arawson
  */
-//TODO: convert to interface for dependancy injection and unit testing
+//TODO: refactor backing storage for this
 public class MemeManager {
     private final MemeMap memeMap;
     private final String memeFile;
 
-    public MemeManager(Memes memes) throws IOException {
-        memeMap = MemeMap.getMemeMap(memes.memeFile);
-        memeFile = memes.memeFile;
+	@Inject
+    public MemeManager() throws IOException {
+//        memeMap = MemeMap.getMemeMap(memes.memeFile);
+//        memeFile = memes.memeFile;
+		memeFile = null;
+		memeMap = null;
     }
     
     void deinit() {

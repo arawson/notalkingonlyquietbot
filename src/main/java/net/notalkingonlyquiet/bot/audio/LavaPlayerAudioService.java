@@ -6,8 +6,8 @@ import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
 import java.util.HashMap;
 import java.util.Map;
-import net.notalkingonlyquiet.bot.config.Config;
 import net.notalkingonlyquiet.bot.core.BotService;
+import net.notalkingonlyquiet.bot.core.ConfigProvider;
 import org.apache.http.client.config.RequestConfig;
 import sx.blah.discord.handle.obj.IGuild;
 
@@ -22,11 +22,11 @@ public class LavaPlayerAudioService implements AudioService {
     private final AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
     @Inject
-    public LavaPlayerAudioService(Config config, BotService botService) {
+    public LavaPlayerAudioService(ConfigProvider config, BotService botService) {
         this.botService = botService;
         playerManager.setHttpRequestConfigurator(
                 (cfg) -> RequestConfig.copy(cfg)
-                        .setConnectTimeout(config.performance.timeout)
+                        .setConnectTimeout(config.getConfig().performance.timeout)
                         .build());
 
         AudioSourceManagers.registerRemoteSources(playerManager);

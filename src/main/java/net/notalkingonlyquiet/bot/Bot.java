@@ -35,6 +35,7 @@ import sx.blah.discord.util.RateLimitException;
 import net.notalkingonlyquiet.bot.core.ConfigProvider;
 import net.notalkingonlyquiet.bot.core.BusProvider;
 import net.notalkingonlyquiet.bot.core.ClientProvider;
+import net.notalkingonlyquiet.bot.core.CommandProvider;
 import net.notalkingonlyquiet.bot.core.events.ClientAbortEvent;
 import net.notalkingonlyquiet.bot.core.events.ClientReadyEvent;
 
@@ -52,11 +53,8 @@ public final class Bot implements BotService {
 
 	//associate servers to audio channels
 	private final Map<IGuild, IChannel> lastChannel = new HashMap<>();
-	private final Map<String, Command> commands = new HashMap<>();
 
-	private final MemeManager memeManager;
-
-	private final YouTubeSearcher youTubeSearcher;
+//	private final YouTubeSearcher youTubeSearcher;
 
 	private boolean dead = false;
 	private final BusProvider busProvider;
@@ -64,7 +62,7 @@ public final class Bot implements BotService {
 	private final String playing;
 
 	@Inject
-	public Bot(ClientProvider cp, ConfigProvider configP, BusProvider bs) throws IOException {
+	public Bot(ClientProvider cp, ConfigProvider configP, BusProvider bs, CommandProvider comP) throws IOException {
 		busProvider = bs;
 		clientProvider = cp;
 
@@ -75,20 +73,12 @@ public final class Bot implements BotService {
 		prefix = MoreObjects.firstNonNull(config.bot.prefix, "!");
 		maxServers = config.performance.servers;
 
-		youTubeSearcher = new YouTubeSearcher(config.google);
-		memeManager = new MemeManager(config.memes);
+//		youTubeSearcher = new YouTubeSearcher(config.google);
+//		memeManager = new MemeManager(config.memes);
 
 		//TODO: manage commands somewhere else
-		Arrays.asList(
-				//new PlayCommand(this),//these 3 require audio service
-				//new SkipCommand(this),
-				//new VolumeCommand(this),
-				new MemeCommand(this, memeManager),
-				new AddMemeCommand(this, memeManager)
-		).stream().forEach(
-				cmd -> {
-					commands.put(cmd.getBase(), cmd);
-				});
+		comP.initCommands();
+//		commands = comP.getCommands();
 
 		clientProvider.getClient().getDispatcher().registerListener(this);
 		busProvider.getBus().register(this);
@@ -149,25 +139,23 @@ public final class Bot implements BotService {
 		}
 	}
 
-	//TODO: get rid of this completely with some guice
 	public synchronized void internalCommand(String command, String[] args, IChannel channel, IUser user) {
-		//TODO: decouple using event bus
-
-		Command c = commands.get(command);
-		if (c == null) {
-			sendMessage(channel, "I'm sorry " + user.getName() + ". I'm afraid I can't do that.");
-		} else {
-			try {
-				c.execute(args, channel, user);
-			} catch (RateLimitException | DiscordException | MissingPermissionsException ex) {
-				Logger.getLogger(Bot.class.getName()).log(Level.SEVERE, null, ex);
-			}
-		}
+		throw new UnsupportedOperationException();
+//		Command c = commands.get(command);
+//		if (c == null) {
+//			sendMessage(channel, "I'm sorry " + user.getName() + ". I'm afraid I can't do that.");
+//		} else {
+//			try {
+//				c.execute(args, channel, user);
+//			} catch (RateLimitException | DiscordException | MissingPermissionsException ex) {
+//				Logger.getLogger(Bot.class.getName()).log(Level.SEVERE, null, ex);
+//			}
+//		}
 	}
 
-	public YouTubeSearcher getYouTubeSearcher() {
-		return youTubeSearcher;
-	}
+//	public YouTubeSearcher getYouTubeSearcher() {
+//		return youTubeSearcher;
+//	}
 
 	@Override
 	public IVoiceChannel joinUsersAudioChannel(IGuild guild, IUser user) throws CantJoinAudioChannelException {

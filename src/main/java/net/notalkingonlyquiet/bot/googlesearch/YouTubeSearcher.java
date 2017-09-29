@@ -8,11 +8,12 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.SearchListResponse;
 import com.google.api.services.youtube.model.SearchResult;
+import com.google.inject.Inject;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
-import net.notalkingonlyquiet.bot.config.Google;
+import net.notalkingonlyquiet.bot.core.ConfigProvider;
 
 /**
  *
@@ -23,14 +24,15 @@ public class YouTubeSearcher {
     private final String apiKey;
     private final String baseUrl = "https://www.youtube.com/watch?v=";
 
-    public YouTubeSearcher(Google config) {
+	@Inject
+    public YouTubeSearcher(ConfigProvider cfg) {
         youtube = new YouTube.Builder(new NetHttpTransport(), new JacksonFactory(), new HttpRequestInitializer() {
             @Override
             public void initialize(HttpRequest request) throws IOException {
             }
-        }).setApplicationName(config.appName).build();
+        }).setApplicationName(cfg.getConfig().google.appName).build();
         
-        apiKey = config.apiToken;
+        apiKey = cfg.getConfig().google.apiToken;
     }
     
     public URL performSearch(String terms) throws MalformedURLException, IOException {
