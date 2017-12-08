@@ -21,13 +21,13 @@ import sx.blah.discord.handle.obj.IGuild;
  */
 public class MemeMap {
 
-    private Map<String, Map<Type, ArrayList<String>>> guildMemes = new HashMap<>();
+    private Map<Long, Map<Type, ArrayList<String>>> guildMemes = new HashMap<>();
 
     public synchronized Map<Type, ArrayList<String>> getMemes(IGuild guild) {
-        Map<Type, ArrayList<String>> get = guildMemes.get(guild.getID());
+        Map<Type, ArrayList<String>> get = guildMemes.get(guild.getLongID());
         if (get == null) {
             get = new HashMap<>();
-            guildMemes.put(guild.getID(), get);
+            guildMemes.put(guild.getLongID(), get);
             for (Type value : Type.values()) {
                 get.put(value, new ArrayList<>());
             }

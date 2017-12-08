@@ -1,6 +1,7 @@
 package net.notalkingonlyquiet.bot;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Preconditions;
 import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
@@ -19,19 +20,20 @@ import net.notalkingonlyquiet.bot.googlesearch.YouTubeSearcher;
 import org.apache.http.client.config.RequestConfig;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventSubscriber;
-import sx.blah.discord.handle.impl.events.GuildCreateEvent;
-import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
+import sx.blah.discord.handle.impl.events.guild.GuildCreateEvent;
+import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.IVoiceChannel;
+import sx.blah.discord.handle.obj.IVoiceState;
 import sx.blah.discord.handle.obj.Permissions;
-import sx.blah.discord.handle.obj.Status;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
+import sx.blah.discord.util.cache.LongMap;
 
 /**
  *
@@ -105,7 +107,7 @@ public final class Bot {
     public void onReady(ReadyEvent e) {
         LogUtil.logInfo("Connection ready.");
         onGuildCreateOrJoin(null);
-        client.changeStatus(Status.game(playing));
+		client.changePlayingText(playing);
     }
 
     @EventSubscriber
@@ -119,8 +121,8 @@ public final class Bot {
                     LogUtil.logError("Connected to too many servers on startup. ABORT.");
                     dead = true;
                 } else {
-                    //leave unexpected guilds to keep server costs low
-                    e.getGuild().leaveGuild();
+                    //leave unexpected guilds o keep server costs low
+					e.getGuild().leave();
                 }
             } else {
                 LogUtil.logInfo("Under connection limit, continuing...");
@@ -172,7 +174,7 @@ public final class Bot {
     GuildMusicManager getGuildMusicManager(IGuild guild) {
         GuildMusicManager mm = musicManagers.get(guild);
         if (mm == null) {
-            mm = new GuildMusicManager(playerManager, eventBus);
+            mm = new GuildMusicManager(playerManager, eventBus, this);
             musicManagers.put(guild, mm);
         }
 
@@ -180,26 +182,42 @@ public final class Bot {
         
         return mm;
     }
+	
+	public IVoiceChannel getLikelyUserVoiceChannel(IUser user) {
+		LongMap<IVoiceState> vs = user.getVoiceStates();
+		IVoiceChannel voice = null;
+		for (IVoiceState v : vs.values()) {
+			IVoiceChannel ch = v.getChannel();
+			if (ch != null && client.getGuilds().contains(ch.getGuild())) {
+				//this is the channel we should connect to
+				voice = ch;
+				break;
+			}
+		}
+		
+		return voice;
+	}
 
     boolean joinUsersAudioChannel(IChannel channel, IUser user) {
         boolean result = false;
-        //Preconditions.checkArgument(!user.isBot(), "I don't answer to bots like you, " + user.getName() + ".");
-        if (user.getConnectedVoiceChannels().size() < 1) {
-            FireAndForget.sendMessage(channel, "You aren't in a voice channel, " + user.getName() + ".");
-        } else {
-            IVoiceChannel voice = user.getConnectedVoiceChannels().get(0);
-            if (!voice.getModifiedPermissions(client.getOurUser()).contains(Permissions.VOICE_CONNECT)) {
-                FireAndForget.sendMessage(channel, "Can't join " + voice.getName() + " without the voice permission!");
-            } else if (voice.getUserLimit() != 0 && voice.getConnectedUsers().size() >= voice.getUserLimit()) {
-                FireAndForget.sendMessage(channel, "Can't join " + voice.getName() + ". It is already full.");
-            } else {
-                FireAndForget.joinVoice(voice);
-                
-                getGuildMusicManager(channel.getGuild()).setCurrentVoiceChannel(voice);
-                FireAndForget.sendMessage(channel, "Connecting to " + voice.getName() + ".");
-                result = true;
-            }
-        }
+        Preconditions.checkArgument(!user.isBot(), "I don't answer to bots like you, " + user.getName() + ".");
+		
+		IVoiceChannel voice = getLikelyUserVoiceChannel(user);
+
+		if (voice == null) {
+			FireAndForget.sendMessage(channel, "You aren't in any voice channels of the servers I am in.");
+		} else if (!voice.getModifiedPermissions(client.getOurUser()).contains(Permissions.VOICE_CONNECT)) {
+			FireAndForget.sendMessage(channel, "Can't join " + voice.getName() + " without the voice permission!");
+		} else if (voice.getUserLimit() != 0 && voice.getConnectedUsers().size() >= voice.getUserLimit()) {
+			FireAndForget.sendMessage(channel, "Can't join " + voice.getName() + ". It is already full.");
+		} else {
+			FireAndForget.joinVoice(voice);
+
+			getGuildMusicManager(channel.getGuild()).setCurrentVoiceChannel(voice);
+			FireAndForget.sendMessage(channel, "Connecting to " + voice.getName() + ".");
+			result = true;
+		}
+        
         return result;
     }
 

@@ -8,6 +8,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import net.notalkingonlyquiet.bot.Bot;
 import net.notalkingonlyquiet.bot.FireAndForget;
 import net.notalkingonlyquiet.bot.LogUtil;
 import sx.blah.discord.handle.obj.IChannel;
@@ -26,12 +27,14 @@ public class GuildMusicManager extends AudioEventAdapter {
     private IVoiceChannel currentVoiceChannel;
     public final AudioPlayer player;
     private final BlockingQueue<AudioTrack> queue;
+	private final Bot bot;
     private final EventBus hostBus;
 
-    public GuildMusicManager(AudioPlayerManager manager, EventBus hostBus) {
+    public GuildMusicManager(AudioPlayerManager manager, EventBus hostBus, Bot bot) {
         player = manager.createPlayer();
         queue = new LinkedBlockingQueue<>();
         this.hostBus = hostBus;
+		this.bot = bot;
         player.addListener(this);
     }
     
@@ -107,22 +110,20 @@ public class GuildMusicManager extends AudioEventAdapter {
 
     public synchronized void userQueue(IChannel channel, IUser user, AudioTrack track) {
         LogUtil.logInfo("user queue");
-        if (user.getConnectedVoiceChannels().size() < 1) {
-            try {
-                channel.sendMessage("You aren't  in a voice channel!");
-            } catch (MissingPermissionsException | DiscordException | RateLimitException ex) {
-                LogUtil.logError("Unable to send to user: " + ex.getLocalizedMessage());
-            }
+		
+		IVoiceChannel voice = bot.getLikelyUserVoiceChannel(user);
+		
+        if (voice == null) {
+			FireAndForget.sendMessage(channel, "You aren't  in any voice channel I can get to!");
         } else {
             if (user.isBot()) {
                 return;
             }
 
-            IVoiceChannel newVoice = user.getConnectedVoiceChannels().get(0);
-            if (isPlaying() && newVoice != currentVoiceChannel) {
+            if (isPlaying() && voice != currentVoiceChannel) {
                 FireAndForget.sendMessage(channel, "You must stop playing to play in a new voice channel.");
             } else {
-                currentVoiceChannel = newVoice;
+                currentVoiceChannel = voice;
                 queue(track);
             }
         }
