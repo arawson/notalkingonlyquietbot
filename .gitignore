@@ -11,3 +11,5 @@ config.toml
 private/
 memes.json
 .nb-gradle-properties
+.idea/**
+*.iml
