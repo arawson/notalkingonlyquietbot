@@ -1,5 +1,5 @@
 
-package net.notalkingonlyquiet.bot;
+package net.notalkingonlyquiet.bot.util;
 
 import java.io.IOException;
 import java.util.logging.FileHandler;

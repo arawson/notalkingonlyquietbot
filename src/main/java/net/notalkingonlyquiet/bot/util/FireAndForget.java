@@ -1,9 +1,10 @@
 
-package net.notalkingonlyquiet.bot;
+package net.notalkingonlyquiet.bot.util;
 
 import com.google.common.base.Preconditions;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.DiscordException;

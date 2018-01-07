@@ -1,6 +1,8 @@
 
 package net.notalkingonlyquiet.bot.config;
 
+import org.springframework.stereotype.Component;
+
 /**
  *
  * @author arawson

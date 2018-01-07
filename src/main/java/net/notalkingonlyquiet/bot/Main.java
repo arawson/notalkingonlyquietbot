@@ -1,40 +1,43 @@
 package net.notalkingonlyquiet.bot;
 
-import com.moandjiezana.toml.Toml;
-import java.io.File;
-import java.io.IOException;
+import net.notalkingonlyquiet.bot.internal.ComponentWaiter;
+import net.notalkingonlyquiet.bot.application.MainConfiguration;
 import net.notalkingonlyquiet.bot.config.Config;
-import sx.blah.discord.api.ClientBuilder;
-import sx.blah.discord.api.IDiscordClient;
-import sx.blah.discord.util.DiscordException;
-import sx.blah.discord.util.RateLimitException;
+import net.notalkingonlyquiet.bot.internal.InternalProcs;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
+@SpringBootApplication
 public class Main {
 
-    /**
-     * @param args the command line arguments
-     * @throws sx.blah.discord.util.DiscordException
-     * @throws sx.blah.discord.util.RateLimitException
-     * @throws java.io.IOException
-     */
-    public static void main(String[] args) throws DiscordException, RateLimitException, IOException {
-        Toml toml = new Toml().read(new File("./config.toml"));
-        Config config = toml.to(Config.class);
-        
-        LogUtil.logInfo("Attempting to connect to Discord...");
+    private static ComponentWaiter waiter;
 
-        IDiscordClient client = new ClientBuilder().withToken(config.login.token).build();
-        
-        Bot bot = new Bot(client, config);
+    @Autowired
+    private void setWaiter(ComponentWaiter cw) {
+        waiter = cw;
+    }
 
-        client.login();
+    private static Config config;
 
-        LogUtil.logInfo("Login Successful...");
+    @Autowired
+    private void setConfig(Config c) {
+        config = c;
+    }
 
-        System.in.read();
+    private static InternalProcs internals;
 
-        bot.forceShutdown();
-        
-        client.logout();
+    @Autowired
+    private void setInternals(InternalProcs p) { internals = p; }
+
+    public static void main(String[] args) {
+        AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
+
+        //TODO: add support for config file for things that need it
+        ctx.register(MainConfiguration.class);
+        ctx.registerShutdownHook();
+
+        SpringApplication.run(Main.class);
     }
 }

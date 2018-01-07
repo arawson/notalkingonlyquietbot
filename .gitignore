@@ -13,3 +13,10 @@ memes.json
 .nb-gradle-properties
 .idea/**
 *.iml
+
+/.dbeaver-data-sources.xml
+/.project
+/notalkingdata.mv.db
+out/**
+*.swp
+

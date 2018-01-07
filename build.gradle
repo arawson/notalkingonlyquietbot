@@ -1,5 +1,15 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.9.RELEASE")
+    }
+}
+
 apply plugin: 'java'
 apply plugin: 'application'
+apply plugin: 'org.springframework.boot'
 
 sourceCompatibility = '1.8'
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
@@ -14,24 +24,23 @@ repositories {
     maven {
         url "https://jitpack.io"
     }
-    maven {
-        url "https://jcenter.bintray.com"
-    }
+    jcenter()
     maven {
         url "https://oss.sonatype.org/content/repositories/releases/"
     }
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.10'
+    testCompile 'org.springframework.boot:spring-boot-starter-test'
+    testCompile group: 'junit', name: 'junit', version: '4.12'
     compile "com.github.austinv11:Discord4j:2.9.3:shaded"
-    compile "com.sedmelluq:lavaplayer:1.2.23"
-    compile "com.moandjiezana.toml:toml4j:0.7.1"
-    compile "com.google.code.gson:gson:2.8.0"
-    compile "com.google.guava:guava:21.0"
-    compile "org.slf4j:slf4j-api:1.7.21"
-    compile "org.slf4j:slf4j-jdk14:1.7.21"
-    compile 'com.google.apis:google-api-services-youtube:v3-rev182-1.22.0'
+    compile "com.sedmelluq:lavaplayer:1.2.45"
+    compile "com.moandjiezana.toml:toml4j:0.7.2"
+    compile "com.google.guava:guava:23.6-jre"
+    compile 'com.google.apis:google-api-services-youtube:v3-rev189-1.23.0'
+    compile 'org.springframework.boot:spring-boot-starter-data-jpa'
+    compile 'org.springframework.data:spring-data-jpa'
+    compile 'com.h2database:h2:1.4.196'
 }
 
 run {

@@ -1,5 +1,5 @@
 
-package net.notalkingonlyquiet.bot.googlesearch;
+package net.notalkingonlyquiet.bot.audio;
 
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestInitializer;
@@ -12,25 +12,32 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+
+import net.notalkingonlyquiet.bot.config.Config;
 import net.notalkingonlyquiet.bot.config.Google;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  *
  * @author arawson
  */
+@Component
 public class YouTubeSearcher {
     private final YouTube youtube;
     private final String apiKey;
     private final String baseUrl = "https://www.youtube.com/watch?v=";
 
-    public YouTubeSearcher(Google config) {
+    @Autowired
+    public YouTubeSearcher(Config config) {
+        final Google gconfig = config.google;
         youtube = new YouTube.Builder(new NetHttpTransport(), new JacksonFactory(), new HttpRequestInitializer() {
             @Override
             public void initialize(HttpRequest request) throws IOException {
             }
-        }).setApplicationName(config.appName).build();
+        }).setApplicationName(gconfig.appName).build();
         
-        apiKey = config.apiToken;
+        apiKey = gconfig.apiToken;
     }
     
     public URL performSearch(String terms) throws MalformedURLException, IOException {
