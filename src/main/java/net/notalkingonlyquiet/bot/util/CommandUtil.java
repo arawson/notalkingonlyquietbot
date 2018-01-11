@@ -1,9 +1,10 @@
 package net.notalkingonlyquiet.bot.util;
 
 import net.notalkingonlyquiet.bot.application.Command;
-import net.notalkingonlyquiet.bot.application.RootCommand;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class CommandUtil {
@@ -25,5 +26,13 @@ public class CommandUtil {
         }
 
         return helpBuilder.toString();
+    }
+
+    //Calendar isn't chainable, so wrap it so it doesn't CLUTTER THE WHOLE CODEBASE!
+    public static Timestamp addTime(Timestamp time, int field, int delta) {
+        Calendar i = Calendar.getInstance();
+        i.setTime(time);
+        i.add(field, delta);
+        return new Timestamp(i.getTimeInMillis());
     }
 }

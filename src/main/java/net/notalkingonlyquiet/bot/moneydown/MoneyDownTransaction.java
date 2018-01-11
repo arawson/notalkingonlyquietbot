@@ -10,7 +10,9 @@ import java.time.LocalDateTime;
 
 @Entity
 public final class MoneyDownTransaction {
-    @EmbeddedId private UserRef user;
+    @Id private Long ID;
+    private Long userID;
+    private Long guildID;
     private Long amount;
     @Enumerated(EnumType.STRING) private TransactionType type;
     @Version private Long version;
@@ -18,11 +20,12 @@ public final class MoneyDownTransaction {
 
     protected MoneyDownTransaction() {}
 
-    public MoneyDownTransaction(IUser u, IGuild g, long amount, TransactionType type) {
-        this.user = new UserRef(u, g);
+    public MoneyDownTransaction(long userID, long guildID, long amount, TransactionType type) {
+        this.userID = userID;
+        this.guildID = guildID;
         this.amount = amount;
         this.type = type;
-        this.when = Timestamp.valueOf(LocalDateTime.now());
+        this.when = new Timestamp(System.currentTimeMillis());
     }
 
     public Long getAmount() {
@@ -37,8 +40,16 @@ public final class MoneyDownTransaction {
         return type;
     }
 
-    public UserRef getUser() {
-        return user;
+    public Long getUserID() {
+        return userID;
+    }
+
+    public Long getGuildID() {
+        return guildID;
+    }
+
+    public Long getID() {
+        return ID;
     }
 
     public Timestamp getWhen() {

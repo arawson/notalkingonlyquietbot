@@ -1,30 +1,35 @@
 package net.notalkingonlyquiet.bot.moneydown;
 
-import sx.blah.discord.handle.obj.IGuild;
-import sx.blah.discord.handle.obj.IUser;
-
-import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
+import javax.persistence.Id;
 
 @Entity
 public class MoneyDownParticipant {
-    @EmbeddedId
-    private UserRef user;
+    @Id private Long id;
+    private Long userID;
 
-    private Boolean agreement;
+    private Boolean inAgreement;
 
     protected MoneyDownParticipant() {}
 
-    public MoneyDownParticipant(IUser u, IGuild g, Boolean agreement) {
-        this.user = new UserRef(u, g);
-        this.agreement = agreement;
+    public MoneyDownParticipant(Long userID, Boolean inAgreement) {
+        this.userID = userID;
+        this.inAgreement = inAgreement;
     }
 
-    public UserRef getUser() {
-        return user;
+    public Long getId() {
+        return id;
     }
 
-    public Boolean getAgreement() {
-        return agreement;
+    public Long getUserID() {
+        return userID;
+    }
+
+    public Boolean isInAgreement() {
+        return inAgreement;
+    }
+
+    public void setInAgreement(Boolean agreement) {
+        this.inAgreement = agreement;
     }
 }
