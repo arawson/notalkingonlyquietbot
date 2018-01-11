@@ -12,5 +12,4 @@ public class Config {
     public PerformanceConfig performance;
     public Bot bot;
     public Google google;
-    public Memes memes;
 }

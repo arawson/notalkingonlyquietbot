@@ -46,7 +46,7 @@ public class MemeCommand implements RootCommand {
 
     @Override
     public String getDescription() {
-        return "the main meme command, for all your memeing needs";
+        return "The main meme command, for all your memeing needs";
     }
 
     @Override
