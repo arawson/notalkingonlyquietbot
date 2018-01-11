@@ -20,3 +20,4 @@ memes.json
 out/**
 *.swp
 
+/notalkingdata.mv.db.archive
