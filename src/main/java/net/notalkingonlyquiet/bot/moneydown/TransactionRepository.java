@@ -12,4 +12,6 @@ public interface TransactionRepository extends CrudRepository<MoneyDownTransacti
     );
 
     public long countByGuildIDAndUserID(long userID, long guildID);
+
+    public long countByGuildIDAndUserIDAndType(long userId, long guildID, TransactionType type);
 }

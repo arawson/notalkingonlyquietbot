@@ -10,7 +10,7 @@ import sx.blah.discord.util.RateLimitException;
 import java.util.List;
 
 @Component
-public class NewCommand implements MoneyDownSubCommand {
+public class NewSubCommand implements MoneyDownSubCommand {
     private static final String HELP = "";
 
     @Autowired
@@ -28,6 +28,6 @@ public class NewCommand implements MoneyDownSubCommand {
 
     @Override
     public void execute(List<String> args, MessageReceivedEvent event) throws RateLimitException, DiscordException, MissingPermissionsException {
-
+        //moneydown new ffa for 30
     }
 }
