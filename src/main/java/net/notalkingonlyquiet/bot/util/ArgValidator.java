@@ -19,8 +19,14 @@ public class ArgValidator {
 
     private final List<Triple<Predicate<String>, Function<String, ?>, String>> parameters = new ArrayList<>();
     private int remainderIndex = -1;
+    private boolean setUppercase = false;
 
     public ArgValidator() {}
+
+    public ArgValidator toUpperCase() {
+        setUppercase = true;
+        return this;
+    }
 
     /**
      * Expect a literal string value in the next position.
@@ -96,7 +102,7 @@ public class ArgValidator {
         StringBuilder remainder = new StringBuilder();
         int i = 0;
         for(; i < args.size(); i++) {
-            String a = args.get(i);
+            String a = setUppercase ? args.get(i).toUpperCase() : args.get(i);
 
             if (i >= parameters.size()) {
                 if (this.remainderIndex == -1) {

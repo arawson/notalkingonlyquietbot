@@ -99,4 +99,50 @@ public class ArgValidatorTest {
         assertTrue(r.errors.contains("ERR"));
         assertTrue(r.results.isEmpty());
     }
+
+    @Test
+    public void testExpectRemainder() {
+        ArgValidator a = new ArgValidator().expectRemainder();
+
+        ArgValidator.Result r = a.parse("1", "2", "3");
+        assertTrue(r.ok);
+        assertTrue(r.errors.isEmpty());
+        assertFalse(r.results.isEmpty());
+        assertEquals(r.results.get(0), "1 2 3");
+
+        r = a.parse();
+        assertTrue(r.ok);
+        assertTrue(r.errors.isEmpty());
+        assertFalse(r.results.isEmpty());
+    }
+
+    @Test
+    public void testMulti1() {
+        ArgValidator a = new ArgValidator();
+        a.expectLiteral("A", "NO A");
+        a.expectRemainder();
+
+        ArgValidator.Result r = a.parse("A", "AND", "THEN");
+        assertTrue(r.ok);
+        assertTrue(r.errors.isEmpty());
+        assertEquals(r.results.get(0), "A");
+        assertEquals(r.results.get(1), "AND THEN");
+    }
+
+    @Test
+    public void testNoToUpperCase() {
+        ArgValidator a = new ArgValidator().expectLiteral("ABCD", "ERR");
+        ArgValidator.Result r = a.parse("abcd");
+        assertFalse(r.ok);
+    }
+
+    @Test
+    public void testToUpperCase() {
+        ArgValidator a = new ArgValidator().expectLiteral("ABCD", "ERR1")
+                .expectString("ERR2").toUpperCase();
+        ArgValidator.Result r = a.parse("abcd", "cdef");
+        assertTrue(r.ok);
+        assertEquals(r.results.get(0), "ABCD");
+        assertEquals(r.results.get(1), "CDEF");
+    }
 }
