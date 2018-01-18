@@ -1,9 +1,10 @@
 package net.notalkingonlyquiet.bot.util;
 
 import net.notalkingonlyquiet.bot.application.Command;
-import net.notalkingonlyquiet.bot.application.RootCommand;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class CommandUtil {
@@ -16,7 +17,7 @@ public class CommandUtil {
 
         final StringBuilder helpBuilder = new StringBuilder();
         helpBuilder.append("Use help or a blank command to get this help.\n");
-        helpBuilder.append("These are the commands currently registered:\n");
+        helpBuilder.append("These are the commands:\n");
         for (Command c: sortedCommands) {
             helpBuilder.append(c.getName().toUpperCase())
                     .append(" -> ")
@@ -25,5 +26,26 @@ public class CommandUtil {
         }
 
         return helpBuilder.toString();
+    }
+
+    //Calendar isn't chainable, so wrap it so it doesn't CLUTTER THE WHOLE CODEBASE!
+    public static Timestamp addTime(Timestamp time, int field, int delta) {
+        Calendar i = Calendar.getInstance();
+        i.setTime(time);
+        i.add(field, delta);
+        return new Timestamp(i.getTimeInMillis());
+    }
+
+
+    /**
+     * Return true if a non-secure random roll succeeds.
+     * This can be used to determine when to show easter eggs.
+     * @param probability the chance of the easter egg appearing
+     * @return whether to show the easter egg.
+     */
+    public static boolean chance(double probability) {
+        double r = Math.random();
+//        System.out.println("r" + r + " out of " + probability);
+        return r <= probability;
     }
 }
