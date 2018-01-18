@@ -17,7 +17,7 @@ public class CommandUtil {
 
         final StringBuilder helpBuilder = new StringBuilder();
         helpBuilder.append("Use help or a blank command to get this help.\n");
-        helpBuilder.append("These are the commands currently registered:\n");
+        helpBuilder.append("These are the commands:\n");
         for (Command c: sortedCommands) {
             helpBuilder.append(c.getName().toUpperCase())
                     .append(" -> ")
@@ -34,5 +34,18 @@ public class CommandUtil {
         i.setTime(time);
         i.add(field, delta);
         return new Timestamp(i.getTimeInMillis());
+    }
+
+
+    /**
+     * Return true if a non-secure random roll succeeds.
+     * This can be used to determine when to show easter eggs.
+     * @param probability the chance of the easter egg appearing
+     * @return whether to show the easter egg.
+     */
+    public static boolean chance(double probability) {
+        double r = Math.random();
+//        System.out.println("r" + r + " out of " + probability);
+        return r <= probability;
     }
 }

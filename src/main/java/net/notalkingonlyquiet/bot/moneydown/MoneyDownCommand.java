@@ -5,6 +5,7 @@ import net.notalkingonlyquiet.bot.application.RootCommand;
 import net.notalkingonlyquiet.bot.util.CommandUtil;
 import net.notalkingonlyquiet.bot.util.FireAndForget;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.util.DiscordException;
@@ -15,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Component
 public class MoneyDownCommand implements RootCommand {
     private final Map<String, MoneyDownSubCommand> subCommands = new HashMap<>();
     private String help = CommandUtil.NEW_HELP;
@@ -24,7 +26,7 @@ public class MoneyDownCommand implements RootCommand {
         subCommands.clear();
 
         for (MoneyDownSubCommand c: injectedCommands) {
-            subCommands.put(c.getName(), c);
+            subCommands.put(c.getName().toUpperCase(), c);
         }
 
         synchronized (this) {
@@ -46,12 +48,12 @@ public class MoneyDownCommand implements RootCommand {
     public void execute(List<String> args, MessageReceivedEvent event) throws RateLimitException, DiscordException, MissingPermissionsException {
         final IChannel channel = event.getChannel();
 
-        if (args.size() == 0 || args.get(0).toUpperCase().equals("HELP")) {
+        if (args.isEmpty() || args.get(0).toUpperCase().equals("HELP")) {
             synchronized (this) {
                 FireAndForget.sendMessage(channel, help);
             }
         } else {
-            String cmdWord = args.get(0);
+            String cmdWord = args.get(0).toUpperCase();
             List<String> newArgs = args.subList(1, args.size());
 
             MoneyDownSubCommand cmd = subCommands.get(cmdWord);

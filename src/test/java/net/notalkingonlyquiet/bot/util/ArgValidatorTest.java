@@ -145,4 +145,20 @@ public class ArgValidatorTest {
         assertEquals(r.results.get(0), "ABCD");
         assertEquals(r.results.get(1), "CDEF");
     }
+
+    @Test
+    public void testExpectRegexCapture() {
+        ArgValidator a = new ArgValidator().expectRegexCapture("<(A+)><(A+)>", "ERR");
+
+        ArgValidator.Result r = a.parse("A");
+        assertFalse(r.ok);
+        assertEquals(r.errors.get(0), "ERR");
+
+        r = a.parse("<AAA><A>");
+        assertTrue(r.ok);
+        assertEquals("AAA A", r.results.get(0));
+
+        r = a.parse("<A>");
+        assertFalse(r.ok);
+    }
 }

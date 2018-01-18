@@ -1,9 +1,9 @@
 package net.notalkingonlyquiet.bot.moneydown;
 
-import org.hibernate.Transaction;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IUser;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class Util {
     //TODO: load from config file or inject
-    private static long STARTING_MONEY = 50;
+    public static final long STARTING_MONEY = 50;
 
     /**
      * Make sure each user on the guild has an initial transaction.
@@ -27,11 +27,33 @@ public class Util {
                 continue;
             }
             if (repo.countByGuildIDAndUserIDAndType(guild.getLongID(), u.getLongID(), TransactionType.PLACEMENT) == 0) {
-                MoneyDownTransaction t = new MoneyDownTransaction(
-                        u.getLongID(), guild.getLongID(), STARTING_MONEY, TransactionType.PLACEMENT);
+                Transaction t = new Transaction(u, guild, STARTING_MONEY, TransactionType.PLACEMENT);
 
                 repo.save(t);
             }
         }
+    }
+
+    static void initSingleUserOnGuild(IUser user, IGuild guild, TransactionRepository repo) {
+        if (!user.isBot() &&
+                repo.countByGuildIDAndUserIDAndType(guild.getLongID(), user.getLongID(), TransactionType.PLACEMENT) == 0) {
+            Transaction t = new Transaction(user, guild, STARTING_MONEY, TransactionType.PLACEMENT);
+
+            repo.save(t);
+        }
+    }
+
+    static long getUserBalanceInGuild(IUser user, IGuild guild, TransactionRepository repo) {
+        if (user.isBot()) {
+            throw new UnsupportedOperationException("Cannot add user as they are a bot!");
+        } else {
+            initSingleUserOnGuild(user, guild, repo);
+
+            return repo.sumAllTransactionsForUserInGuild(user.getLongID(), guild.getLongID());
+        }
+    }
+
+    static Timestamp getNow() {
+        return new Timestamp(System.currentTimeMillis());
     }
 }

@@ -4,13 +4,14 @@ import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IUser;
 
 import javax.persistence.*;
-import java.sql.Time;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 
 @Entity
-public final class MoneyDownTransaction {
-    @Id private Long ID;
+public final class Transaction {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long ID;
+
     private Long userID;
     private Long guildID;
     private Long amount;
@@ -18,9 +19,21 @@ public final class MoneyDownTransaction {
     @Version private Long version;
     private Timestamp when;
 
-    protected MoneyDownTransaction() {}
+    @ManyToOne
+    private MoneyDown source;
 
-    public MoneyDownTransaction(long userID, long guildID, long amount, TransactionType type) {
+    protected Transaction() {}
+
+    public Transaction(IUser user, IGuild guild, long amount, TransactionType type) {
+        this(user.getLongID(), guild.getLongID(), amount, type);
+    }
+
+    public Transaction(IUser user, IGuild guild, long amount, TransactionType type, MoneyDown source) {
+        this(user.getLongID(), guild.getLongID(), amount, type);
+        this.source = source;
+    }
+
+    public Transaction(long userID, long guildID, long amount, TransactionType type) {
         this.userID = userID;
         this.guildID = guildID;
         this.amount = amount;
@@ -55,4 +68,6 @@ public final class MoneyDownTransaction {
     public Timestamp getWhen() {
         return when;
     }
+
+    public MoneyDown getSource() { return source; }
 }

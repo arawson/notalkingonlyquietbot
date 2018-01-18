@@ -9,11 +9,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.MatchResult;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Provides simple validation for parameters in the order they are expected.
  */
 public class ArgValidator {
+    public static final String USER_ID_PATTERN = "<@([0-9]+)>";
     public static final String TOO_MANY_ERROR = "TOO MANY";
     public static final String EXPECTED_MORE_ERROR = "EXPECTED MORE";
 
@@ -83,6 +87,42 @@ public class ArgValidator {
                 (s -> Integer.parseInt(s)),
                 error
         ));
+        return this;
+    }
+
+    public ArgValidator expectRegexCapture(String regex, String error) {
+        Preconditions.checkState(remainderIndex == -1);
+        Preconditions.checkNotNull(error);
+
+        final Pattern p = Pattern.compile(regex);
+
+        parameters.add(new ImmutableTriple<>(
+                (s -> {
+                    final Matcher m = p.matcher(s);
+                    return m.matches();
+                }),
+                (s -> {
+                    final Matcher m = p.matcher(s);
+                    final StringBuilder b = new StringBuilder();
+
+                    while (m.find()) {
+                        //group 0 is the entire patter :|
+                        //that means its one indexed :|
+                        for (int i = 1; i <= m.groupCount(); i++ ) {
+                            b.append(m.group(i));
+                            b.append(" ");
+                        }
+                    }
+
+                    if (b.length() == 0) {
+                        b.append(s);
+                    }
+
+                    return b.toString().trim();
+                }),
+                error
+        ));
+
         return this;
     }
 
