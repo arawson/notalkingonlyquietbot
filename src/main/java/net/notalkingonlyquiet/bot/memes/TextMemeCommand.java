@@ -8,8 +8,6 @@ import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.List;
 
 @Component
@@ -29,7 +27,7 @@ public class TextMemeCommand implements MemeSubCommand {
 
     @Override
     public void execute(List<String> args, MessageReceivedEvent event) throws RateLimitException, DiscordException, MissingPermissionsException {
-        List<Meme> memes = memeRepo.findByGuildIdAndType(event.getGuild().getLongID(), MemeType.TEXT);
+        List<Meme> memes = memeRepo.findByGuildIDAndType(event.getGuild().getLongID(), MemeType.TEXT);
 
         if (memes.size() == 0) {
             FireAndForget.sendMessage(event.getChannel(),"Looks like the make-a-meme foundation needs more donations! (This server has no memes!)");

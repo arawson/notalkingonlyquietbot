@@ -33,7 +33,7 @@ public class AutoMemeCommand implements MemeSubCommand {
 
     @Override
     public void execute(List<String> args, MessageReceivedEvent event) throws RateLimitException, DiscordException, MissingPermissionsException {
-        List<Meme> memes = memeRepo.findByGuildIdAndType(event.getGuild().getLongID(), MemeType.PLAYABLE);
+        List<Meme> memes = memeRepo.findByGuildIDAndType(event.getGuild().getLongID(), MemeType.PLAYABLE);
 
         if (memes.size() == 0) {
             FireAndForget.sendMessage(event.getChannel(),"Looks like the make-a-meme foundation needs more donations! (This server has no memes!)");

@@ -2,8 +2,6 @@ package net.notalkingonlyquiet.bot.memes;
 
 import com.google.common.base.MoreObjects;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.Generated;
-import sx.blah.discord.handle.obj.IGuild;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -11,10 +9,10 @@ import java.util.Date;
 @Entity
 public class Meme {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long ID;
 
-    private Long guildId;
+    private Long guildID;
 
     @Enumerated(EnumType.STRING)
     private MemeType type;
@@ -28,8 +26,8 @@ public class Meme {
 
     protected Meme() {}
 
-    public Meme(Long guildId, MemeType type, String value) {
-        this.guildId = guildId;
+    public Meme(Long guildID, MemeType type, String value) {
+        this.guildID = guildID;
         this.type = type;
         this.value = value;
     }
@@ -38,14 +36,14 @@ public class Meme {
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("ID", ID)
-                .add("guild", guildId)
+                .add("guild", guildID)
                 .add("type", type)
                 .add("value", value)
                 .toString();
     }
 
-    public Long getGuildId() {
-        return guildId;
+    public Long getGuildID() {
+        return guildID;
     }
 
     public Long getID() {

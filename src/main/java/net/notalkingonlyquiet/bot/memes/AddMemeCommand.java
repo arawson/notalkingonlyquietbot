@@ -3,11 +3,9 @@ package net.notalkingonlyquiet.bot.memes;
 
 import net.notalkingonlyquiet.bot.util.FireAndForget;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IChannel;
-import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
@@ -61,7 +59,7 @@ final class AddMemeCommand implements MemeSubCommand {
                             try {
                                 URL url = new URL(args.get(1));
                                 String urlString = url.toString();
-                                long existing = memeRepo.countByGuildIdAndTypeAndValue(guildId, type, urlString);
+                                long existing = memeRepo.countByGuildIDAndTypeAndValue(guildId, type, urlString);
 
                                 if (existing < 1) {
                                     memeRepo.save(new Meme(guildId, type, urlString));
@@ -81,7 +79,7 @@ final class AddMemeCommand implements MemeSubCommand {
                             FireAndForget.sendMessage(event.getChannel(), "There must be some text to add!");
                         } else {
                             String value = String.join(" ", args.subList(1, args.size()));
-                            long existing = memeRepo.countByGuildIdAndTypeAndValue(guildId, type, value);
+                            long existing = memeRepo.countByGuildIDAndTypeAndValue(guildId, type, value);
 
                             if (existing < 1) {
                                 memeRepo.save(new Meme(guildId, type, value));

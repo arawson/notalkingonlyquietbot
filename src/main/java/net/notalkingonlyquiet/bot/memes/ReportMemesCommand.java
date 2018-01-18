@@ -35,7 +35,7 @@ public class ReportMemesCommand implements MemeSubCommand {
         for (MemeType type : MemeType.values()) {
             report.append(type.toString());
             report.append(" -> ");
-            report.append(memeRepo.countByGuildIdAndType(guildId, type));
+            report.append(memeRepo.countByGuildIDAndType(guildId, type));
             report.append("\n");
         }
         report.append("This has been Meme McCream and your top-of-the-hour meme news.");

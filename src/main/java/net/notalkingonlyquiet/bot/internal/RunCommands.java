@@ -58,7 +58,7 @@ public class RunCommands implements BotInternalProc {
 
     @EventSubscriber
     public void onMessage(MessageReceivedEvent event) {
-        System.out.println(commands);
+//        System.out.println(commands);
         final IMessage message = event.getMessage();
         final IChannel channel = message.getChannel();
         final IUser user = message.getAuthor();
